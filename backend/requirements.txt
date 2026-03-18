@@ -6,5 +6,12 @@ pandas
 ta
 python-dotenv
 pydantic
+pydantic-settings
 requests
 scikit-learn
+
+# LLM providers (auto-switching — add whichever you have a key for)
+langchain-openai
+langchain-google-genai
+langchain-groq
+langchain-huggingface
