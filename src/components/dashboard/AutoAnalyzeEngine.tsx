@@ -14,6 +14,8 @@ import {
   ArrowDown,
   BarChart3
 } from "lucide-react";
+import { TradePlanModal } from "./TradePlanModal";
+import type { SignalData } from "./AISignalCard";
 
 const logs = [
   { agent: "Radar Agent", message: "Scanning 500+ stocks for institutional footprint...", type: "radar" },
@@ -26,12 +28,37 @@ const logs = [
   { agent: "Action Agent", message: "Finalizing risk-adjusted entry/exit plan. Ready for reveal.", type: "action" },
 ];
 
+const scanMessages = [
+  "Initializing Agent Swarm...",
+  "Scanning 5,248 assets in real-time...",
+  "Detecting breakout patterns...",
+  "Analyzing institutional order flow...",
+  "Processing news sentiment...",
+  "Identifying high-conviction trades..."
+];
+
 export function AutoAnalyzeEngine() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanIndex, setScanIndex] = useState(0);
   const [currentStep, setCurrentStep] = useState(-1);
   const [showResult, setShowResult] = useState(false);
   const [scannedCount, setScannedCount] = useState(0);
   const [isRevealing, setIsRevealing] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const mockSignalData: SignalData = {
+    id: 914,
+    stock: "RELIANCE",
+    price: "₹2,462.40",
+    expectedMove: 8.2,
+    confidence: 91.4,
+    signal: "Breakout",
+    risk: "Low",
+    sector: "Energy / Index Heavyweight",
+    volume: "3.4M (3x avg)",
+    explanation: "Breakout above ₹2,410 with institutional footprint. Neural link confirms 91.4% probability."
+  };
 
   useEffect(() => {
     let interval: any;
@@ -68,9 +95,31 @@ export function AutoAnalyzeEngine() {
     }
   }, [isAnalyzing, currentStep]);
 
+  useEffect(() => {
+    if (isScanning) {
+      const timer = setInterval(() => {
+        setScanIndex(prev => {
+          if (prev >= scanMessages.length - 1) {
+            clearInterval(timer);
+            setTimeout(() => {
+              setIsScanning(false);
+              setIsAnalyzing(true);
+              setCurrentStep(0);
+            }, 800);
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, 600);
+      return () => clearInterval(timer);
+    }
+  }, [isScanning]);
+
   const handleStart = () => {
-    setIsAnalyzing(true);
-    setCurrentStep(0);
+    setIsScanning(true);
+    setScanIndex(0);
+    setIsAnalyzing(false);
+    setCurrentStep(-1);
     setShowResult(false);
     setScannedCount(0);
     setIsRevealing(false);
@@ -79,7 +128,7 @@ export function AutoAnalyzeEngine() {
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
       <AnimatePresence mode="wait">
-        {!isAnalyzing && !showResult && !isRevealing ? (
+        {!isAnalyzing && !showResult && !isRevealing && !isScanning ? (
           <motion.div
             key="start-button"
             initial={{ opacity: 0, scale: 0.95 }}
@@ -89,15 +138,75 @@ export function AutoAnalyzeEngine() {
           >
             <button
               onClick={handleStart}
-              className="group relative px-10 py-5 rounded-2xl gradient-crimson-gold text-white font-black text-xl hover:scale-[1.02] active:scale-[0.98] transition-all glow-crimson flex items-center gap-4"
+              className="group relative px-12 py-6 rounded-2xl gradient-crimson-gold text-white font-black text-2xl hover:scale-[1.05] active:scale-[0.98] transition-all elite-glow-gold flex flex-col items-center gap-2"
             >
-              <Zap className="w-7 h-7 fill-white animate-pulse" />
-              AI AUTO-ANALYZE MARKET
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-crimson to-gold rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-1000 group-hover:duration-200"></div>
+              <div className="flex items-center gap-4">
+                <Zap className="w-8 h-8 fill-white animate-pulse" />
+                EXECUTE AI SCAN
+                <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+              </div>
+              <span className="text-[10px] font-black tracking-[0.4em] opacity-80 group-hover:opacity-100 uppercase italic">Start Autonomous Reasoning</span>
+              
+              <div className="absolute -inset-1 bg-gradient-to-r from-crimson to-gold rounded-2xl blur-xl opacity-20 group-hover:opacity-60 transition duration-500"></div>
             </button>
-            <p className="text-muted-foreground text-sm font-medium">
-              Start autonomous decision flow across 500+ real-time assets
+            <p className="text-muted-foreground text-sm font-medium italic opacity-70">
+              Triggering the Decision Engine reveals institutional flow across 5k+ assets.
             </p>
+          </motion.div>
+        ) : isScanning ? (
+          <motion.div
+            key="scanning-experience"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.1, filter: "blur(20px)" }}
+            className="ai-card p-12 min-h-[450px] flex flex-col items-center justify-center text-center gap-8 relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gold/5 to-transparent animate-pulse" />
+            
+            <motion.div 
+               animate={{ rotate: 360 }}
+               transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+               className="relative"
+            >
+              <div className="w-32 h-32 rounded-full border-2 border-dashed border-gold/40 flex items-center justify-center">
+                <Search className="w-12 h-12 text-gold animate-bounce" />
+              </div>
+              <motion.div 
+                animate={{ scale: [1, 1.5, 1], opacity: [0.2, 0.5, 0.2] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute inset-0 bg-gold/20 rounded-full blur-2xl"
+              />
+            </motion.div>
+
+            <div className="space-y-4 relative z-10">
+              <AnimatePresence mode="wait">
+                <motion.h3 
+                  key={scanIndex}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="text-4xl font-black text-white italic tracking-tighter uppercase"
+                >
+                  {scanMessages[scanIndex]}
+                </motion.h3>
+              </AnimatePresence>
+              <div className="flex items-center justify-center gap-3">
+                <div className="h-1 w-48 bg-white/10 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${((scanIndex + 1) / scanMessages.length) * 100}%` }}
+                    className="h-full bg-gradient-to-r from-crimson to-gold"
+                  />
+                </div>
+                <span className="text-[10px] font-mono text-gold font-black">
+                  {Math.round(((scanIndex + 1) / scanMessages.length) * 100)}%
+                </span>
+              </div>
+            </div>
+            
+            <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.5em] animate-pulse">
+              Aggregating Tier-1 Exchange Data
+            </div>
           </motion.div>
         ) : isAnalyzing ? (
           <motion.div
@@ -229,8 +338,11 @@ export function AutoAnalyzeEngine() {
                   </h4>
                   <div className="relative">
                     <div className="absolute -left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-gold to-transparent rounded-full" />
-                    <p className="text-base text-foreground/90 font-medium leading-relaxed bg-white/5 p-5 rounded-2xl border border-white/10 italic shadow-xl">
-                      "Market mein abhi tak confusion hai, par humare agents ne clear trend detect kiya hai. **Breaking out above ₹2,410** with volume 3x above average. Sector rotation energy ki taraf shift ho raha hai, and RSI clear bullish divergence dikha raha hai. **Yeh chance miss nahi karna chahiye.**"
+                    <p className="text-lg text-foreground/90 font-medium leading-relaxed bg-white/5 p-6 rounded-2xl border border-white/10 italic shadow-2xl relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-2 opacity-10">
+                        <Brain className="w-12 h-12" />
+                      </div>
+                      "Market mein breakout clear ho chuka hai. Institutional footprint ₹2,410 support pe bahut strong hai. Sector rotation energy ki taraf shift ho raha hai, and RSI bullish divergence dikha raha hai. **Yeh golden opportunity hai, miss mat karna.** Level sustained hai, action lene ka waqt aa gaya hai."
                     </p>
                   </div>
                 </div>
@@ -274,7 +386,11 @@ export function AutoAnalyzeEngine() {
                 </div>
 
                 <div className="pt-4 flex flex-col gap-4">
-                  <button className="group relative w-full py-5 rounded-2xl gradient-crimson-gold text-white font-black text-xl hover:scale-[1.02] transition-all glow-crimson flex items-center justify-center gap-3">
+                  <button 
+                    onClick={() => setIsModalOpen(true)}
+                    className="group relative w-full py-5 rounded-2xl gradient-crimson-gold text-white font-black text-xl hover:scale-[1.02] transition-all elite-glow-gold flex items-center justify-center gap-3 overflow-hidden"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
                     <BarChart3 className="w-6 h-6 animate-bounce" />
                     SIMULATE TRADE PLAN
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -295,6 +411,12 @@ export function AutoAnalyzeEngine() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <TradePlanModal 
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        data={mockSignalData}
+      />
     </div>
   );
 }

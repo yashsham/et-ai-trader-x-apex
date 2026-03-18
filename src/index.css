@@ -94,14 +94,34 @@
     box-shadow: 0 0 15px -5px hsl(var(--profit));
   }
 
+  .elite-glow-profit {
+    box-shadow: 0 0 40px -10px hsl(var(--profit) / 0.6);
+  }
+
+  .elite-glow-loss {
+    box-shadow: 0 0 40px -10px hsl(var(--loss) / 0.6);
+  }
+
+  .elite-glow-gold {
+    box-shadow: 0 0 40px -10px hsl(var(--gold) / 0.6);
+  }
+
+  .glass-panel {
+    @apply bg-white/[0.03] backdrop-blur-xl border border-white/10 shadow-2xl;
+  }
+
+  .text-display-huge {
+    @apply text-6xl font-black tracking-tighter sm:text-7xl md:text-8xl;
+  }
+
   .ai-card {
-    @apply bg-card border border-white/[0.08] rounded-xl transition-all duration-200;
+    @apply bg-card border border-white/[0.08] rounded-2xl transition-all duration-300;
     transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
   }
 
   .ai-card:hover {
-    @apply border-white/[0.2];
-    transform: translateY(-2px);
+    @apply border-white/[0.2] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)];
+    transform: translateY(-4px);
   }
 
   .signal-shimmer {
@@ -140,6 +160,10 @@
 
   .pulse-live {
     animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .demo-step-badge {
+    @apply px-2 py-0.5 rounded-md bg-gold/20 text-gold text-[10px] font-black uppercase tracking-widest border border-gold/30;
   }
 }
 
