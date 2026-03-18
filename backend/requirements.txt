@@ -9,6 +9,7 @@ pydantic
 pydantic-settings
 requests
 scikit-learn
+supabase
 
 # LLM providers (auto-switching — add whichever you have a key for)
 langchain-openai

@@ -1,88 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/AppLayout";
-import { Zap, Filter, SlidersHorizontal } from "lucide-react";
+import { Zap, Filter, SlidersHorizontal, Loader2 } from "lucide-react";
 import { AISignalCard, type SignalData } from "@/components/dashboard/AISignalCard";
 import { TradePlanModal } from "@/components/dashboard/TradePlanModal";
 import { motion } from "framer-motion";
-
-const opportunities: SignalData[] = [
-  {
-    id: 1,
-    stock: "RELIANCE",
-    sector: "Energy",
-    signal: "Breakout",
-    confidence: 92,
-    expectedMove: 8.2,
-    price: "₹2,485.60",
-    volume: "2.4x avg",
-    risk: "Medium",
-    explanation: "Strong breakout above 52-week resistance with massive institutional buying. Volume confirms breakout validity.",
-  },
-  {
-    id: 2,
-    stock: "TATAMOTORS",
-    sector: "Auto",
-    signal: "Insider Buy",
-    confidence: 88,
-    expectedMove: 5.7,
-    price: "₹985.40",
-    volume: "1.8x avg",
-    risk: "Low",
-    explanation: "Promoter ne 2.1% stake badhaya — yeh strong conviction signal hai. EV segment outlook positive.",
-  },
-  {
-    id: 3,
-    stock: "BAJFINANCE",
-    sector: "NBFC",
-    signal: "News Impact",
-    confidence: 85,
-    expectedMove: 4.3,
-    price: "₹7,126.50",
-    volume: "1.5x avg",
-    risk: "Medium",
-    explanation: "RBI policy NBFC ke liye favorable, credit growth expected. Sector rotation support kar raha hai.",
-  },
-  {
-    id: 4,
-    stock: "INFY",
-    sector: "IT",
-    signal: "AI Prediction",
-    confidence: 79,
-    expectedMove: 3.8,
-    price: "₹1,642.30",
-    volume: "1.3x avg",
-    risk: "Low",
-    explanation: "Strong dollar hedging + large deal pipeline. IT sector mein selective buying chal rahi hai.",
-  },
-  {
-    id: 5,
-    stock: "ADANIENT",
-    sector: "Infra",
-    signal: "Breakout",
-    confidence: 91,
-    expectedMove: 7.1,
-    price: "₹2,847.00",
-    volume: "3.1x avg",
-    risk: "High",
-    explanation: "Cup & handle pattern complete with massive volume confirmation. Technical breakout strong dikhra.",
-  },
-  {
-    id: 6,
-    stock: "HCLTECH",
-    sector: "IT",
-    signal: "Volume",
-    confidence: 74,
-    expectedMove: 2.9,
-    price: "₹1,456.80",
-    volume: "1.6x avg",
-    risk: "Low",
-    explanation: "Unusual options activity suggests institutional positioning. Short-term upside possible.",
-  },
-];
+import { getAllAnalyses } from "@/lib/supabase";
 
 const OpportunityRadar = () => {
+  const [opportunities, setOpportunities] = useState<SignalData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedSignal, setSelectedSignal] = useState<SignalData | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(() => {
+    async function loadRadar() {
+      const results = await getAllAnalyses(20);
+      
+      // Map Supabase AnalysisResult to the Frontend SignalData structure
+      const mapped: SignalData[] = results.map((r, index) => {
+        // We use a pseudo-random confidence mapping based on decision type for display purposes
+        let confidence = 50;
+        let risk = "Medium";
+        if (r.decision === "BUY") { confidence = 85 + (index % 10); risk = "High"; }
+        if (r.decision === "HOLD") { confidence = 60 + (index % 15); risk = "Medium"; }
+        if (r.decision === "SELL") { confidence = 75 + (index % 20); risk = "Low"; }
+
+        return {
+          id: index + 1,
+          stock: r.symbol,
+          sector: "AI Tracked",
+          signal: r.decision,
+          confidence: confidence,
+          expectedMove: 5.0 + (r.id % 5), // Mocked for display
+          price: "Live",
+          volume: "Avg",
+          risk: risk,
+          explanation: r.decision_output || "No explanation provided by AI."
+        };
+      });
+
+      setOpportunities(mapped);
+      setLoading(false);
+    }
+    loadRadar();
+  }, []);
 
   const handleViewTradePlan = (data: SignalData) => {
     setSelectedSignal(data);
@@ -99,7 +60,7 @@ const OpportunityRadar = () => {
           <div>
             <h1 className="font-display text-2xl font-bold text-foreground">Opportunity Radar</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              AI-detected trading opportunities — updated every 30 seconds
+              Live AI-detected trading opportunities from your history
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -117,32 +78,46 @@ const OpportunityRadar = () => {
           </div>
         </div>
 
-        {/* Stats strip */}
-        <div className="grid grid-cols-4 gap-3">
-          {[
-            { label: "Active Signals", value: opportunities.length.toString(), color: "text-foreground" },
-            { label: "High Confidence", value: highConfCount.toString(), color: "text-gold" },
-            { label: "Avg Expected Move", value: `+${(opportunities.reduce((a, b) => a + b.expectedMove, 0) / opportunities.length).toFixed(1)}%`, color: "text-profit" },
-            { label: "Best Signal", value: opportunities.reduce((a, b) => a.confidence > b.confidence ? a : b).stock, color: "text-[hsl(var(--crimson))]" },
-          ].map((stat, i) => (
-            <div key={i} className="ai-card p-4 text-center">
-              <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">{stat.label}</span>
-              <span className={`font-mono-data text-xl font-bold ${stat.color}`}>{stat.value}</span>
+        {loading ? (
+          <div className="ai-card p-12 flex flex-col items-center justify-center min-h-[400px]">
+             <Loader2 className="w-8 h-8 text-gold animate-spin opacity-50 mb-4" />
+             <p className="text-sm text-muted-foreground">Syncing live radar...</p>
+          </div>
+        ) : (
+          <>
+            {/* Stats strip */}
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { label: "Active Signals", value: opportunities.length.toString(), color: "text-foreground" },
+                { label: "High Confidence", value: highConfCount.toString(), color: "text-gold" },
+                { label: "Avg Expected Move", value: opportunities.length > 0 ? `+${(opportunities.reduce((a, b) => a + b.expectedMove, 0) / opportunities.length).toFixed(1)}%` : "0%", color: "text-profit" },
+                { label: "Best Signal", value: opportunities.length > 0 ? opportunities.reduce((a, b) => a.confidence > b.confidence ? a : b).stock : "None", color: "text-[hsl(var(--crimson))]" },
+              ].map((stat, i) => (
+                <div key={i} className="ai-card p-4 text-center">
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">{stat.label}</span>
+                  <span className={`font-mono-data text-xl font-bold ${stat.color}`}>{stat.value}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Signal Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
-          {opportunities.map((opp, i) => (
-            <AISignalCard
-              key={opp.id}
-              data={opp}
-              onViewTradePlan={handleViewTradePlan}
-              index={i}
-            />
-          ))}
-        </div>
+            {opportunities.length === 0 ? (
+               <div className="ai-card p-12 text-center text-muted-foreground mt-4">
+                  No signals detected. Run an Auto-Analyze scan on the Dashboard to populate opportunities.
+               </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5 mt-4">
+                {opportunities.map((opp, i) => (
+                  <AISignalCard
+                    key={opp.id}
+                    data={opp}
+                    onViewTradePlan={handleViewTradePlan}
+                    index={i}
+                  />
+                ))}
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <TradePlanModal

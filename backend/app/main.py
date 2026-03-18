@@ -16,6 +16,8 @@ from dotenv import load_dotenv
 from app.crew.orchestrator import TradingCrew
 from app.core.audit_logger import audit_logger
 from app.core.injection_scanner import injection_scanner
+from app.services.db_service import db_service
+from app.services.dashboard_service import dashboard_service
 
 load_dotenv()
 
@@ -79,8 +81,17 @@ class AnalysisRequest(BaseModel):
     symbol: str = "RELIANCE.NS"
     portfolio: dict = {}
 
+class WatchlistRequest(BaseModel):
+    symbol: str
 
-# ── Routes ────────────────────────────────────────────────────────
+class SettingsRequest(BaseModel):
+    full_name: str
+    email: str
+    timezone: str
+    notifications: bool
+
+
+# ── Core Routes ───────────────────────────────────────────────────
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "service": "ET AI Trader X Intelligence Engine v2"}
@@ -109,6 +120,110 @@ async def analyze_stock(request: AnalysisRequest):
     except Exception as e:
         audit_logger.log_event("ANALYSIS_ERROR", "HIGH", {"detail": str(e)})
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ── History Routes ────────────────────────────────────────────────
+@app.get("/api/v1/history/{symbol}")
+def get_symbol_history(symbol: str, limit: int = 10):
+    """Fetch past AI analyses for a specific stock symbol."""
+    data = db_service.get_analysis_history(symbol.upper(), limit=limit)
+    return {"symbol": symbol.upper(), "count": len(data), "results": data}
+
+
+@app.get("/api/v1/history")
+def get_all_history(limit: int = 50):
+    """Fetch all recent AI analyses across all symbols."""
+    data = db_service.get_all_analyses(limit=limit)
+    return {"count": len(data), "results": data}
+
+
+# ── Watchlist Routes ──────────────────────────────────────────────
+@app.get("/api/v1/watchlist")
+def get_watchlist():
+    """Get all symbols in the watchlist."""
+    data = db_service.get_watchlist()
+    return {"count": len(data), "watchlist": data}
+
+
+@app.post("/api/v1/watchlist")
+def add_watchlist(request: WatchlistRequest):
+    """Add a symbol to the watchlist."""
+    result = db_service.add_to_watchlist(request.symbol.upper())
+    if result is None:
+        return {"success": False, "message": "DB not configured or symbol already exists"}
+    return {"success": True, "symbol": request.symbol.upper(), "data": result}
+
+
+@app.delete("/api/v1/watchlist/{symbol}")
+def remove_watchlist(symbol: str):
+    """Remove a symbol from the watchlist."""
+    success = db_service.remove_from_watchlist(symbol.upper())
+    return {"success": success, "symbol": symbol.upper()}
+
+
+# ── Settings Routes ───────────────────────────────────────────────
+@app.get("/api/v1/settings")
+def get_settings():
+    """Get the current user configurations."""
+    data = db_service.get_settings()
+    if not data:
+        # Return sensible defaults if DB not configured or row missing
+        return {
+            "full_name": "Admin User",
+            "email": "admin@et-ai-trader.com",
+            "timezone": "UTC",
+            "notifications": True
+        }
+    return data
+
+
+@app.post("/api/v1/settings")
+def update_settings(request: SettingsRequest):
+    """Update user configurations."""
+    update_data = {
+        "full_name": request.full_name,
+        "email": request.email,
+        "timezone": request.timezone,
+        "notifications": request.notifications
+    }
+    result = db_service.update_settings(update_data)
+    if result is None:
+        raise HTTPException(status_code=500, detail="Failed to save settings to DB.")
+    return {"success": True, "settings": result}
+
+
+# ── Dashboard Routes ──────────────────────────────────────────────
+@app.get("/api/v1/market/overview")
+def get_market_overview():
+    """Live index overview data for UI chart."""
+    data = dashboard_service.get_market_overview()
+    if not data:
+        raise HTTPException(status_code=503, detail="Market data unavailable")
+    return {"success": True, "data": data}
+
+@app.get("/api/v1/market/movers")
+def get_market_movers():
+    """Live top gainers and losers."""
+    data = dashboard_service.get_top_movers()
+    return {"success": True, "data": data}
+
+@app.get("/api/v1/market/sentiment")
+def get_market_sentiment():
+    """Live news-based market sentiment gauge score."""
+    data = dashboard_service.get_market_sentiment()
+    return {"success": True, "data": data}
+
+@app.get("/api/v1/market/news")
+def get_market_news():
+    """Actual live feed of top finance news."""
+    data = dashboard_service.get_market_news()
+    return {"success": True, "data": data}
+
+@app.get("/api/v1/portfolio")
+def get_portfolio():
+    """Live portfolio P&L engine pulling from Supabase and yfinance."""
+    data = dashboard_service.get_live_portfolio()
+    return {"success": True, "data": data}
 
 
 if __name__ == "__main__":

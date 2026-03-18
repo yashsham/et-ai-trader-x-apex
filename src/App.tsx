@@ -10,6 +10,7 @@ import PortfolioBrain from "./pages/PortfolioBrain.tsx";
 import AIAssistant from "./pages/AIAssistant.tsx";
 import AIVideoEngine from "./pages/AIVideoEngine.tsx";
 import MarketNews from "./pages/MarketNews.tsx";
+import Settings from "./pages/Settings.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/assistant" element={<AIAssistant />} />
           <Route path="/video" element={<AIVideoEngine />} />
           <Route path="/news" element={<MarketNews />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

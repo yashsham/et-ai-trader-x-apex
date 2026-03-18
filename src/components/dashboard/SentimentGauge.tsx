@@ -1,11 +1,44 @@
+import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
+
 export function SentimentGauge() {
-  const sentiment = 72; // 0-100, 50 = neutral
+  const [sentiment, setSentiment] = useState(50);
+  const [label, setLabel] = useState("Neutral");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const res = await fetch("http://localhost:8000/api/v1/market/sentiment");
+        const json = await res.json();
+        if (json.success && json.data) {
+          setSentiment(json.data.score);
+          setLabel(json.data.label);
+        }
+      } catch (err) {
+        console.error("Failed to fetch sentiment", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="ai-card p-6 flex items-center justify-center min-h-[200px]">
+        <Loader2 className="w-8 h-8 text-gold animate-spin opacity-50" />
+      </div>
+    );
+  }
+
+  // 0-100, 50 = neutral
   const angle = (sentiment / 100) * 180 - 90; // -90 to 90 degrees
 
   return (
     <div className="ai-card p-6 flex flex-col items-center justify-center">
       <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-4">
-        Market Sentiment
+        Market Sentiment (Live News)
       </p>
 
       {/* Gauge */}
@@ -50,8 +83,12 @@ export function SentimentGauge() {
       </div>
 
       <div className="text-center">
-        <span className="font-mono-data text-2xl font-bold text-profit">{sentiment}%</span>
-        <p className="text-sm font-medium text-profit mt-1">Bullish</p>
+        <span className={`font-mono-data text-2xl font-bold ${
+          sentiment >= 65 ? "text-profit" : sentiment <= 35 ? "text-loss" : "text-gold"
+        }`}>{sentiment}%</span>
+        <p className={`text-sm font-medium mt-1 ${
+          label === "Bullish" ? "text-profit" : label === "Bearish" ? "text-loss" : "text-gold"
+        }`}>{label}</p>
       </div>
 
       <div className="flex justify-between w-full mt-3 px-2">

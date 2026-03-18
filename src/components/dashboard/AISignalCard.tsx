@@ -3,10 +3,10 @@ import { motion } from "framer-motion";
 import { Eye, Plus, TrendingUp, TrendingDown, ShieldAlert, Zap } from "lucide-react";
 
 export interface SignalData {
-  id: number;
+  id: number | string;
   stock: string;
   sector: string;
-  signal: "Breakout" | "Bearish" | "Insider Buy" | "News Impact" | "AI Prediction" | "Volume";
+  signal: string;
   confidence: number;
   expectedMove: number;
   price: string;

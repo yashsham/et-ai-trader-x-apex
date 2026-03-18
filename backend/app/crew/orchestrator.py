@@ -3,6 +3,7 @@ from app.agents.trading_agents import TradingAgents
 from app.crew.tasks import TradingTasks
 from app.services.market_service import market_service
 from app.services.signal_service import signal_service
+from app.services.db_service import db_service
 import json
 
 class TradingCrew:
@@ -36,4 +37,13 @@ class TradingCrew:
         )
 
         result = crew.kickoff()
+
+        # Persist analysis result to Supabase
+        db_service.save_analysis(
+            symbol=self.symbol,
+            decision_output=str(result),
+            portfolio=self.portfolio,
+        )
+
         return result
+

@@ -38,6 +38,7 @@ const scanMessages = [
 ];
 
 export function AutoAnalyzeEngine() {
+  const [targetSymbol, setTargetSymbol] = useState("RELIANCE.NS");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [scanIndex, setScanIndex] = useState(0);
@@ -46,6 +47,11 @@ export function AutoAnalyzeEngine() {
   const [scannedCount, setScannedCount] = useState(0);
   const [isRevealing, setIsRevealing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Real data state
+  const [analysisResult, setAnalysisResult] = useState("");
+  const [analysisDecision, setAnalysisDecision] = useState("UNKNOWN");
+
 
   const mockSignalData: SignalData = {
     id: 914,
@@ -85,15 +91,22 @@ export function AutoAnalyzeEngine() {
             const response = await fetch("http://localhost:8000/api/v1/analyze-stock", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ symbol: "RELIANCE.NS", portfolio: {} })
+              body: JSON.stringify({ symbol: targetSymbol, portfolio: {} })
             });
             const data = await response.json();
             console.log("AI Decision:", data);
             
-            // If backend fails or is not running, we still have the mock/prev reveal flow
-            // but the goal is to show the "Success" state
+            if (data && data.decision_output) {
+              setAnalysisResult(data.decision_output);
+              const outUpper = data.decision_output.toUpperCase();
+              if (outUpper.includes("BUY")) setAnalysisDecision("BUY");
+              else if (outUpper.includes("SELL")) setAnalysisDecision("SELL");
+              else if (outUpper.includes("HOLD")) setAnalysisDecision("HOLD");
+              else setAnalysisDecision("UNKNOWN");
+            }
           } catch (error) {
             console.error("Backend Error:", error);
+            setAnalysisResult("Error connecting to AI swarm core.");
           }
 
           setTimeout(() => {
@@ -107,6 +120,7 @@ export function AutoAnalyzeEngine() {
         }
         setCurrentStep(prev => prev + 1);
       }, 700 + Math.random() * 900);
+
       return () => clearTimeout(timer);
     }
   }, [isAnalyzing, currentStep]);
@@ -165,6 +179,15 @@ export function AutoAnalyzeEngine() {
               
               <div className="absolute -inset-1 bg-gradient-to-r from-crimson to-gold rounded-2xl blur-xl opacity-20 group-hover:opacity-60 transition duration-500"></div>
             </button>
+            <div className="flex items-center gap-3 bg-white/5 p-2 rounded-xl border border-white/10 w-full max-w-sm">
+              <input
+                type="text"
+                value={targetSymbol}
+                onChange={e => setTargetSymbol(e.target.value)}
+                placeholder="Target Symbol (e.g. RELIANCE.NS)"
+                className="bg-transparent border-none text-white text-center w-full focus:outline-none font-mono uppercase tracking-widest placeholder:text-muted-foreground/50"
+              />
+            </div>
             <p className="text-muted-foreground text-sm font-medium italic opacity-70">
               Triggering the Decision Engine reveals institutional flow across 5k+ assets.
             </p>
@@ -383,18 +406,27 @@ export function AutoAnalyzeEngine() {
               
               <div className="flex flex-col gap-1 mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-profit animate-ping" />
+                  <div className={`w-2 h-2 rounded-full animate-ping ${analysisDecision === 'SELL' ? 'bg-loss' : 'bg-profit'}`} />
                   <span className="text-xs font-black text-gold uppercase tracking-[0.3em]">Autonomous Alpha Signal</span>
                 </div>
-                <h2 className="text-6xl font-black text-white tracking-tighter flex items-end gap-3">
-                  RELIANCE
-                  <span className="text-2xl text-muted-foreground font-medium tracking-normal mb-1">/ NSE</span>
+                <h2 className="text-6xl font-black text-white tracking-tighter flex items-end gap-3 uppercase">
+                  {targetSymbol.split('.')[0]}
+                  <span className="text-2xl text-muted-foreground font-medium tracking-normal mb-1">/ {targetSymbol.split('.')[1] || 'NSE'}</span>
                 </h2>
               </div>
 
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-profit/20 border border-profit/40 shadow-inner">
-                <Zap className="w-5 h-5 text-profit fill-profit" />
-                <span className="text-lg font-black text-profit uppercase italic">Strong Buy Recommendation</span>
+              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border shadow-inner ${
+                analysisDecision === 'BUY' ? 'bg-profit/20 border-profit/40 text-profit' :
+                analysisDecision === 'SELL' ? 'bg-loss/20 border-loss/40 text-loss' :
+                'bg-gold/20 border-gold/40 text-gold'
+              }`}>
+                <Zap className="w-5 h-5 fill-current" />
+                <span className="text-lg font-black uppercase italic">
+                  {analysisDecision === 'BUY' ? 'Strong Buy Recommendation' :
+                   analysisDecision === 'SELL' ? 'Sell/Avoid Recommendation' :
+                   analysisDecision === 'HOLD' ? 'Hold / Monitor Position' :
+                   'Analysis Complete'}
+                </span>
               </div>
             </div>
 
@@ -402,16 +434,16 @@ export function AutoAnalyzeEngine() {
               <div className="space-y-8">
                 <div>
                   <h4 className="flex items-center gap-2 text-xs font-black text-gold uppercase tracking-widest mb-4">
-                    <Brain className="w-4 h-4" /> Core Reasoning (Hinglish Analysis)
+                    <Brain className="w-4 h-4" /> Core Reasoning (AI Output)
                   </h4>
                   <div className="relative">
                     <div className="absolute -left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-gold to-transparent rounded-full" />
-                    <p className="text-lg text-foreground/90 font-medium leading-relaxed bg-white/5 p-6 rounded-2xl border border-white/10 italic shadow-2xl relative overflow-hidden">
-                      <div className="absolute top-0 right-0 p-2 opacity-10">
+                    <div className="text-sm text-foreground/90 font-medium leading-relaxed bg-white/5 p-6 rounded-2xl border border-white/10 shadow-2xl relative overflow-hidden h-[300px] overflow-y-auto custom-scrollbar font-mono-data whitespace-pre-wrap">
+                      <div className="absolute top-0 right-0 p-2 opacity-10 pointer-events-none">
                         <Brain className="w-12 h-12" />
                       </div>
-                      "Market mein breakout clear ho chuka hai. Institutional footprint ₹2,410 support pe bahut strong hai. Sector rotation energy ki taraf shift ho raha hai, and RSI bullish divergence dikha raha hai. **Yeh golden opportunity hai, miss mat karna.** Level sustained hai, action lene ka waqt aa gaya hai."
-                    </p>
+                      {analysisResult || "Thinking..."}
+                    </div>
                   </div>
                 </div>
 

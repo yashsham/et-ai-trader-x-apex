@@ -1,6 +1,6 @@
 """
 Audit Logger — adapted from yash-genai-prod-os (ConsoleJSONLogger pattern).
-Logs security events as structured JSON to stdout for easy monitoring.
+Logs security events as structured JSON to stdout AND persists to Supabase.
 """
 import json
 import time
@@ -18,5 +18,13 @@ class AuditLogger:
         }
         print(json.dumps(entry))
 
+        # Persist to Supabase (lazy import to avoid circular deps)
+        try:
+            from app.services.db_service import db_service
+            db_service.save_audit_log(event_type, severity, details, user_id)
+        except Exception:
+            pass  # Never let DB errors break the main flow
+
 
 audit_logger = AuditLogger()
+

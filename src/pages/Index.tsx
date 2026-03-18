@@ -7,6 +7,8 @@ import { AIAlerts } from "@/components/dashboard/AIAlerts";
 import { SentimentGauge } from "@/components/dashboard/SentimentGauge";
 import { AgentsActivity } from "@/components/dashboard/AgentsActivity";
 import { AutoAnalyzeEngine } from "@/components/dashboard/AutoAnalyzeEngine";
+import { Watchlist } from "@/components/dashboard/Watchlist";
+import { AnalysisHistory } from "@/components/dashboard/AnalysisHistory";
 
 const Dashboard = () => {
   return (
@@ -28,6 +30,12 @@ const Dashboard = () => {
           <HeroSection />
           <AgentsActivity />
         </section>
+
+        {/* Database integrated Watchlist and History */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+          <Watchlist />
+          <AnalysisHistory />
+        </div>
 
         <section className="py-20 border-y border-white/[0.05] bg-white/[0.01] -mx-6 px-10 relative overflow-hidden">
           {/* Subtle background glow */}

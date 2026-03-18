@@ -1,26 +1,54 @@
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { TrendingUp, TrendingDown, Loader2 } from "lucide-react";
 
-const gainers = [
-  { name: "TATA MOTORS", price: "₹985.40", change: "+4.2%", sector: "Auto" },
-  { name: "ADANI ENT", price: "₹2,847.00", change: "+3.8%", sector: "Infra" },
-  { name: "BAJAJ FIN", price: "₹7,126.50", change: "+2.9%", sector: "NBFC" },
-  { name: "INFOSYS", price: "₹1,642.30", change: "+2.1%", sector: "IT" },
-];
+interface StockMover {
+  name: string;
+  price: string;
+  change: string;
+  raw_pct: number;
+  sector: string;
+}
 
-const losers = [
-  { name: "HDFC BANK", price: "₹1,598.20", change: "-1.8%", sector: "Banking" },
-  { name: "BHARTI AIRTEL", price: "₹1,412.60", change: "-1.5%", sector: "Telecom" },
-  { name: "WIPRO", price: "₹487.90", change: "-1.2%", sector: "IT" },
-  { name: "SBI", price: "₹628.40", change: "-0.9%", sector: "Banking" },
-];
+interface MoversData {
+  gainers: StockMover[];
+  losers: StockMover[];
+}
 
 export function TopMovers() {
+  const [data, setData] = useState<MoversData>({ gainers: [], losers: [] });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const res = await fetch("http://localhost:8000/api/v1/market/movers");
+        const json = await res.json();
+        if (json.success && json.data) {
+          setData(json.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch market movers", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="ai-card p-6 min-h-[300px] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-gold animate-spin opacity-50" />
+      </div>
+    );
+  }
+
   return (
     <div className="ai-card p-6">
-      <h3 className="text-sm font-semibold text-foreground mb-4">Top Gainers & Losers</h3>
+      <h3 className="text-sm font-semibold text-foreground mb-4">Live Gainers & Losers (Nifty Top 10)</h3>
 
       <div className="space-y-2">
-        {gainers.map((stock) => (
+        {data.gainers.slice(0, 3).map((stock) => (
           <div
             key={stock.name}
             className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-accent transition-colors"
@@ -41,7 +69,7 @@ export function TopMovers() {
 
         <div className="border-t border-white/[0.05] my-2" />
 
-        {losers.map((stock) => (
+        {data.losers.slice(0, 3).map((stock) => (
           <div
             key={stock.name}
             className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-accent transition-colors"
