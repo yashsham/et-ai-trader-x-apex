@@ -18,17 +18,11 @@ export function HeroSection() {
         </div>
 
         <h1 className="font-display text-3xl font-bold text-foreground mb-2">
-          AI Market Intelligence Engine
+          Autonomous AI Decision Engine
         </h1>
         <p className="text-muted-foreground text-base max-w-xl mb-6">
-          Find opportunities before the market does. Real-time AI analysis across 5,000+ stocks
-          with 84.2% accuracy over the last 200 sessions.
+          Beyond analysis. Direct execution intelligence. Our AGENTS scan, reason, and act across 5,000+ assets with unmatched precision.
         </p>
-
-        <button className="inline-flex items-center gap-2 px-6 py-3 rounded-lg gradient-crimson-gold text-foreground font-semibold text-sm hover:opacity-90 transition-opacity glow-crimson">
-          Analyze Market Now
-          <ArrowRight className="w-4 h-4" />
-        </button>
       </div>
     </div>
   );

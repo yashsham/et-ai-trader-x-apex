@@ -39,14 +39,12 @@ export function AppSidebar({
     >
       {/* Logo */}
       <div className="h-16 flex items-center px-4 border-b border-white/[0.05]">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg gradient-crimson-gold flex items-center justify-center">
-            <Zap className="w-4 h-4 text-foreground" />
-          </div>
+        <div className="flex items-center gap-3">
+          <img src="/logo.png" alt="ET Logo" className="w-8 h-8 rounded-lg object-cover" />
           {!collapsed && (
             <div className="font-display">
               <span className="text-sm font-bold text-foreground">ET AI</span>
-              <span className="text-sm font-bold text-gold ml-1">Trader X</span>
+              <span className="text-sm font-bold text-gold ml-1">Intelligence</span>
             </div>
           )}
         </div>
