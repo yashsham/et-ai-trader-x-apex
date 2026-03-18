@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+crewai
+yfinance
+pandas
+ta
+python-dotenv
+pydantic
+requests
+scikit-learn
