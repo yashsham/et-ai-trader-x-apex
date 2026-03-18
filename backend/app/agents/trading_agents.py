@@ -17,35 +17,11 @@ load_dotenv()
 def _get_llm():
     """Build an LLM with auto-switching fallback priority."""
 
-    # ── 1. OpenAI ─────────────────────────────────────────────
-    if os.getenv("OPENAI_API_KEY"):
-        try:
-            from langchain_openai import ChatOpenAI
-            print("[LLM] ✅ OpenAI")
-            return ChatOpenAI(
-                model=os.getenv("MODEL", "gpt-4-turbo"),
-                api_key=os.getenv("OPENAI_API_KEY")
-            )
-        except Exception as e:
-            print(f"[LLM] OpenAI failed: {e}")
-
-    # ── 2. Google Gemini ───────────────────────────────────────
-    if os.getenv("GEMINI_API_KEY"):
-        try:
-            from langchain_google_genai import ChatGoogleGenerativeAI
-            print("[LLM] ✅ Google Gemini (fallback)")
-            return ChatGoogleGenerativeAI(
-                model="gemini-1.5-pro",
-                google_api_key=os.getenv("GEMINI_API_KEY")
-            )
-        except Exception as e:
-            print(f"[LLM] Gemini failed: {e}")
-
     # ── 3. Groq (FREE, Ultra-fast) ─────────────────────────────
     if os.getenv("GROQ_API_KEY"):
         try:
             from langchain_groq import ChatGroq
-            print("[LLM] ✅ Groq (fallback)")
+            print("[LLM] Groq Selected (fallback)")
             return ChatGroq(
                 model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
                 api_key=os.getenv("GROQ_API_KEY")
@@ -57,7 +33,7 @@ def _get_llm():
     if os.getenv("OPENROUTER_API_KEY"):
         try:
             from langchain_openai import ChatOpenAI
-            print("[LLM] ✅ OpenRouter (fallback)")
+            print("[LLM] OpenRouter Selected (fallback)")
             return ChatOpenAI(
                 model=os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini"),
                 api_key=os.getenv("OPENROUTER_API_KEY"),
@@ -70,7 +46,7 @@ def _get_llm():
     if os.getenv("HUGGINGFACE_API_KEY"):
         try:
             from langchain_huggingface import HuggingFaceEndpoint
-            print("[LLM] ✅ HuggingFace (fallback)")
+            print("[LLM] HuggingFace Selected (fallback)")
             return HuggingFaceEndpoint(
                 repo_id=os.getenv("HF_MODEL", "mistralai/Mistral-7B-Instruct-v0.3"),
                 huggingfacehub_api_token=os.getenv("HUGGINGFACE_API_KEY")
@@ -79,7 +55,7 @@ def _get_llm():
             print(f"[LLM] HuggingFace failed: {e}")
 
     raise RuntimeError(
-        "❌ No LLM API key found. Add at least one of:\n"
+        "No LLM API key found. Add at least one of:\n"
         "  OPENAI_API_KEY, GEMINI_API_KEY, GROQ_API_KEY, "
         "OPENROUTER_API_KEY, HUGGINGFACE_API_KEY"
     )

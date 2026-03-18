@@ -31,7 +31,16 @@ class TradingTasks:
 
     def decision_task(self, agent, symbol):
         return Task(
-            description=f"Synthesize all data to give a final BUY/SELL/HOLD for {symbol}. Include entry, target, and stop loss. Explain in Hinglish.",
+            description=f"Synthesize all data to give a final BUY/SELL/HOLD decision for {symbol} with Entry, Target, and Stop Loss parameters. Explain the rationale in Hinglish.",
             agent=agent,
-            expected_output="Final trading decision (BUY/SELL/HOLD) with Entry, Target, Stop Loss, Reasoning (Hinglish), and Alpha Logic."
+            expected_output='''Strictly return a valid JSON object matching this exact schema:
+{
+  "decision": "BUY",
+  "entry": "Rs. 2450 - 2460",
+  "target": "Rs. 2650",
+  "stop_loss": "Rs. 2380",
+  "confidence": 92.5,
+  "reasoning": "Provide detailed Hinglish explanation here..."
+}
+Do not include any additional text or markdown formatting outside of the JSON block.'''
         )

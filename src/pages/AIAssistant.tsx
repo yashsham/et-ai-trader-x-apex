@@ -1,6 +1,6 @@
 import { AppLayout } from "@/components/AppLayout";
-import { useState } from "react";
-import { Send, Zap, TrendingUp, BarChart3, Brain } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Send, Zap, TrendingUp, BarChart3, Brain, Loader2 } from "lucide-react";
 
 const suggestedPrompts = [
   "Should I buy RELIANCE now?",
@@ -23,44 +23,61 @@ const initialMessages: Message[] = [
     content:
       "Namaste! I'm your AI Trading Assistant. Ask me about any stock, market trend, or portfolio strategy. I analyze real-time data to give you actionable insights.",
   },
-  {
-    id: 2,
-    role: "user",
-    content: "Should I buy HDFC Bank now?",
-  },
-  {
-    id: 3,
-    role: "ai",
-    content:
-      "HDFC Bank is currently trading at ₹1,598.20, down 1.8% today. Here's my analysis:",
-    analysis: {
-      risk: "Medium — consolidating near support, but banking sector faces NPA concerns",
-      recommendation: "Wait for ₹1,570 support test before entry. If it holds, strong buy signal.",
-      target: "₹1,720 (7.6% upside) in 30 trading sessions",
-    },
-  },
 ];
 
 const AIAssistant = () => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    const newMsg: Message = { id: Date.now(), role: "user", content: input };
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSend = async (text: string = input) => {
+    if (!text.trim() || isLoading) return;
+    const newMsg: Message = { id: Date.now(), role: "user", content: text };
     setMessages((prev) => [...prev, newMsg]);
     setInput("");
-    // Simulate AI response
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now() + 1,
-          role: "ai",
-          content: "Analyzing your query... I'll provide a detailed response with actionable insights shortly. This is a demo — in production, this connects to our AI engine.",
-        },
-      ]);
-    }, 800);
+    setIsLoading(true);
+
+    const loadingMsgId = Date.now() + 1;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: loadingMsgId,
+        role: "ai",
+        content: "Analyzing your query with CrewAI agents... I'll provide a detailed response shortly.",
+      },
+    ]);
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/v1/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: text }),
+      });
+      const data = await res.json();
+      
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === loadingMsgId ? { ...m, content: data.response || "No response received." } : m
+        )
+      );
+    } catch (error) {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === loadingMsgId ? { ...m, content: `Connection error: ${error}` } : m
+        )
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -120,12 +137,13 @@ const AIAssistant = () => {
         </div>
 
         {/* Suggested prompts */}
-        <div className="flex gap-2 py-3 overflow-x-auto">
+        <div className="flex gap-2 py-3 overflow-x-auto nice-scrollbar">
           {suggestedPrompts.map((prompt) => (
             <button
               key={prompt}
-              onClick={() => setInput(prompt)}
-              className="shrink-0 text-xs px-3 py-1.5 rounded-full border border-white/[0.08] text-muted-foreground hover:text-foreground hover:border-white/20 transition-colors"
+              onClick={() => handleSend(prompt)}
+              disabled={isLoading}
+              className="shrink-0 text-xs px-3 py-1.5 rounded-full border border-white/[0.08] text-muted-foreground hover:text-foreground hover:border-white/20 transition-colors disabled:opacity-50"
             >
               {prompt}
             </button>
@@ -133,19 +151,21 @@ const AIAssistant = () => {
         </div>
 
         {/* Input */}
-        <div className="flex items-center gap-3 bg-card border border-white/[0.08] rounded-xl p-3">
+        <div className="flex items-center gap-3 bg-card border border-white/[0.08] rounded-xl p-3 focus-within:border-gold/30 focus-within:ring-1 focus-within:ring-gold/20 transition-all">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
             placeholder="Ask about any stock, trend, or strategy..."
-            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
+            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none px-2"
+            disabled={isLoading}
           />
           <button
-            onClick={handleSend}
-            className="p-2 rounded-lg gradient-crimson-gold text-foreground hover:opacity-90 transition-opacity"
+            onClick={() => handleSend()}
+            disabled={isLoading || !input.trim()}
+            className="p-2 rounded-lg gradient-crimson-gold text-foreground hover:opacity-90 transition-opacity disabled:opacity-50 disabled:grayscale"
           >
-            <Send className="w-4 h-4" />
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" /> : <Send className="w-4 h-4 flex-shrink-0" />}
           </button>
         </div>
       </div>

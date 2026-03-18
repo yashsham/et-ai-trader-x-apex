@@ -18,7 +18,7 @@ const navItems = [
   { title: "Opportunity Radar", icon: Radar, path: "/radar" },
   { title: "Chart Intelligence", icon: BarChart3, path: "/charts" },
   { title: "Portfolio Brain", icon: Brain, path: "/portfolio" },
-  { title: "AI Assistant", icon: MessageSquare, path: "/assistant" },
+  { title: "AI Trading Assistant", icon: MessageSquare, path: "/assistant" },
   { title: "Market News", icon: Newspaper, path: "/news" },
   { title: "Settings", icon: Settings, path: "/settings" },
 ];

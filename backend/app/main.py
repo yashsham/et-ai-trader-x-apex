@@ -12,12 +12,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
+import re
 
 from app.crew.orchestrator import TradingCrew
 from app.core.audit_logger import audit_logger
 from app.core.injection_scanner import injection_scanner
 from app.services.db_service import db_service
 from app.services.dashboard_service import dashboard_service
+from app.api.endpoints.chat import router as chat_router
+from app.api.endpoints.charts import router as charts_router
 
 load_dotenv()
 
@@ -96,6 +99,9 @@ class SettingsRequest(BaseModel):
 def health_check():
     return {"status": "healthy", "service": "ET AI Trader X Intelligence Engine v2"}
 
+app.include_router(chat_router, prefix="/api/v1/chat", tags=["Chatbot"])
+app.include_router(charts_router, prefix="/api/v1/charts", tags=["Charts"])
+
 
 @app.post("/api/v1/analyze-stock")
 async def analyze_stock(request: AnalysisRequest):
@@ -112,7 +118,29 @@ async def analyze_stock(request: AnalysisRequest):
             severity="LOW",
             details={"symbol": request.symbol, "success": True}
         )
-        return {"symbol": request.symbol, "decision_output": str(result), "success": True}
+        
+        result_str = str(result)
+        parsed_data = {}
+        try:
+            # Attempt to extract JSON if LLM included markdown blocks
+            json_match = re.search(r'\{.*\}', result_str, re.DOTALL)
+            if json_match:
+                parsed_data = json.loads(json_match.group(0))
+            else:
+                parsed_data = json.loads(result_str)
+        except Exception as e:
+            # Fallback if LLM failed to generate valid JSON
+            print("Failed to parse CrewAI JSON output:", e)
+            parsed_data = {
+                "decision": "UNKNOWN",
+                "entry": "N/A",
+                "target": "N/A",
+                "stop_loss": "N/A",
+                "confidence": 50.0,
+                "reasoning": result_str
+            }
+            
+        return {"symbol": request.symbol, "decision_output": result_str, "parsed_data": parsed_data, "success": True}
     except RuntimeError as e:
         # No LLM key configured
         audit_logger.log_event("LLM_ERROR", "HIGH", {"detail": str(e)})

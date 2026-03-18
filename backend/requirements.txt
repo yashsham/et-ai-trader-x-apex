@@ -16,3 +16,9 @@ langchain-openai
 langchain-google-genai
 langchain-groq
 langchain-huggingface
+
+# Agent Chat & RAG
+llama-index
+llama-index-llms-groq
+llama-index-embeddings-huggingface
+crewai-tools
