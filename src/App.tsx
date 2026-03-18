@@ -4,6 +4,12 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
+import OpportunityRadar from "./pages/OpportunityRadar.tsx";
+import ChartIntelligence from "./pages/ChartIntelligence.tsx";
+import PortfolioBrain from "./pages/PortfolioBrain.tsx";
+import AIAssistant from "./pages/AIAssistant.tsx";
+import AIVideoEngine from "./pages/AIVideoEngine.tsx";
+import MarketNews from "./pages/MarketNews.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -16,7 +22,12 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/radar" element={<OpportunityRadar />} />
+          <Route path="/charts" element={<ChartIntelligence />} />
+          <Route path="/portfolio" element={<PortfolioBrain />} />
+          <Route path="/assistant" element={<AIAssistant />} />
+          <Route path="/video" element={<AIVideoEngine />} />
+          <Route path="/news" element={<MarketNews />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
