@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Eye, Plus, TrendingUp, TrendingDown, ShieldAlert } from "lucide-react";
+import { Eye, Plus, TrendingUp, TrendingDown, ShieldAlert, Zap } from "lucide-react";
 
 export interface SignalData {
   id: number;
@@ -112,24 +112,39 @@ export function AISignalCard({ data, onViewTradePlan, index = 0 }: AISignalCardP
         </div>
 
         {/* Center: Expected Move */}
-        <div className="text-center py-4 mb-4 rounded-lg bg-accent/50">
-          <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">
-            Expected Move
+        <div className={`text-center py-6 mb-4 rounded-xl transition-all duration-300 ${
+          data.confidence > 90 ? "bg-white/[0.03] ring-1 ring-white/10" : "bg-accent/50"
+        }`}>
+          {data.confidence > 90 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-crimson/20 border border-crimson/30 mb-2"
+            >
+              <Zap className="w-3 h-3 text-crimson fill-crimson" />
+              <span className="text-[9px] font-black text-crimson uppercase tracking-tighter">🔥 High Confidence</span>
+            </motion.div>
+          )}
+          <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1 font-bold">
+            Expected Return
           </span>
           <motion.span
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.08 + 0.3, duration: 0.4 }}
-            className={`font-mono-data text-3xl font-extrabold ${
+            className={`font-mono-data text-5xl font-black ${
               isPositive ? "text-profit" : "text-loss"
             }`}
-            style={isPositive ? { textShadow: "0 0 20px hsl(145 100% 39% / 0.4)" } : { textShadow: "0 0 20px hsl(14 100% 50% / 0.4)" }}
+            style={isPositive 
+              ? { textShadow: `0 0 ${data.confidence > 90 ? '40px' : '20px'} hsl(145 100% 39% / 0.5)` } 
+              : { textShadow: `0 0 ${data.confidence > 90 ? '40px' : '20px'} hsl(14 100% 50% / 0.5)` }
+            }
           >
             {isPositive ? "+" : ""}{data.expectedMove}%
           </motion.span>
-          <div className="flex items-center justify-center gap-1 mt-1">
-            {isPositive ? <TrendingUp className="w-3 h-3 text-profit" /> : <TrendingDown className="w-3 h-3 text-loss" />}
-            <span className="font-mono-data text-xs text-muted-foreground">{data.price}</span>
+          <div className="flex items-center justify-center gap-1 mt-2">
+            {isPositive ? <TrendingUp className="w-4 h-4 text-profit" /> : <TrendingDown className="w-4 h-4 text-loss" />}
+            <span className="font-mono-data text-sm font-bold text-foreground/80">{data.price}</span>
           </div>
         </div>
 

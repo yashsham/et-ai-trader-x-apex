@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { TrendingUp, ShieldAlert, Target, ArrowDown, Zap, Play, BarChart3 } from "lucide-react";
+import { TrendingUp, ShieldAlert, Target, ArrowDown, Zap, Play, BarChart3, Brain, ArrowRight } from "lucide-react";
 import type { SignalData } from "./AISignalCard";
 
 interface TradePlanModalProps {
@@ -58,45 +58,66 @@ export function TradePlanModal({ open, onOpenChange, data }: TradePlanModalProps
             <TradeParam icon={<ShieldAlert className="w-4 h-4 text-[hsl(var(--warning))]" />} label="Risk Level" value={data.risk} valueClass={data.risk === "Low" ? "text-profit" : data.risk === "High" ? "text-loss" : "text-[hsl(var(--warning))]"} />
           </div>
 
-          {/* Probability Meter */}
-          <div className="mb-5 p-4 rounded-lg bg-accent/60">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Success Probability</span>
-              <span className="font-mono-data text-lg font-extrabold text-gold">{plan.probability}%</span>
+          {/* Probability & Risk Row */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="p-4 rounded-xl bg-accent/40 border border-white/5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Accuracy</span>
+                <span className="font-mono-data text-lg font-black text-gold">{plan.probability}%</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${plan.probability}%` }}
+                  transition={{ duration: 1.5, ease: "easeOut" }}
+                  className="h-full bg-gradient-to-r from-crimson to-gold"
+                />
+              </div>
             </div>
-            <div className="h-3 rounded-full bg-muted overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${plan.probability}%` }}
-                transition={{ duration: 1.2, ease: [0.2, 0, 0, 1] }}
-                className="h-full rounded-full bg-gradient-to-r from-[hsl(var(--crimson))] to-[hsl(var(--gold))]"
-              />
+            <div className="p-4 rounded-xl bg-accent/40 border border-white/5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Risk Exposure</span>
+                <span className={`text-xs font-black uppercase ${
+                  data.risk === 'Low' ? 'text-profit' : data.risk === 'High' ? 'text-loss' : 'text-gold'
+                }`}>{data.risk}</span>
+              </div>
+              <div className="flex gap-1 h-1.5">
+                <div className={`flex-1 rounded-full ${data.risk === 'Low' ? 'bg-profit' : 'bg-white/10'}`} />
+                <div className={`flex-1 rounded-full ${data.risk === 'Medium' ? 'bg-gold' : 'bg-white/10'}`} />
+                <div className={`flex-1 rounded-full ${data.risk === 'High' ? 'bg-loss' : 'bg-white/10'}`} />
+              </div>
             </div>
           </div>
 
           {/* AI Reason */}
-          <div className="mb-6 p-4 rounded-lg border border-border bg-accent/30">
-            <span className="text-[10px] uppercase tracking-widest text-gold block mb-2">🧠 AI Analysis (Hinglish)</span>
-            <p className="text-xs text-muted-foreground leading-relaxed italic">"{plan.reason}"</p>
+          <div className="mb-8 relative">
+            <div className="absolute -left-3 top-0 bottom-0 w-1 bg-gold/30 rounded-full" />
+            <div className="p-4 rounded-xl border border-gold/20 bg-gold/5 italic">
+              <span className="text-[10px] uppercase tracking-widest text-gold font-black block mb-2 flex items-center gap-2">
+                <Brain className="w-3 h-3 text-gold" /> AI Strategic Overview
+              </span>
+              <p className="text-sm text-foreground/90 leading-relaxed">"{plan.reason}"</p>
+            </div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3">
             <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg bg-[hsl(var(--crimson))] text-primary-foreground text-sm font-bold hover:shadow-[0_0_25px_-3px_hsl(var(--crimson)/0.6)] transition-shadow duration-300"
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              className="group relative w-full py-4 rounded-xl bg-crimson text-white font-black text-base shadow-[0_10px_30px_-10px_rgba(220,38,38,0.5)] flex items-center justify-center gap-3 overflow-hidden"
             >
-              <BarChart3 className="w-4 h-4" />
-              Simulate Trade
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer" />
+              <BarChart3 className="w-5 h-5" />
+              SIMULATE TRADE PLAN
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-lg border border-[hsl(var(--gold)/0.4)] text-gold text-sm font-bold hover:bg-[hsl(var(--gold)/0.08)] transition-all duration-200"
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-3 rounded-xl border border-white/10 text-muted-foreground text-xs font-bold hover:text-white hover:bg-white/5 transition-all"
             >
-              <Play className="w-4 h-4" />
-              Execute (Demo)
+              Close Strategy
             </motion.button>
           </div>
         </div>
