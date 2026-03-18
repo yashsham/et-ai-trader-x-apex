@@ -156,56 +156,108 @@ export function AutoAnalyzeEngine() {
         ) : isScanning ? (
           <motion.div
             key="scanning-experience"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.1, filter: "blur(20px)" }}
-            className="ai-card p-12 min-h-[450px] flex flex-col items-center justify-center text-center gap-8 relative overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 1.1, filter: "blur(40px)" }}
+            className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-2xl flex flex-col items-center justify-center overflow-hidden"
           >
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-gold/5 to-transparent animate-pulse" />
-            
-            <motion.div 
-               animate={{ rotate: 360 }}
-               transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-               className="relative"
-            >
-              <div className="w-32 h-32 rounded-full border-2 border-dashed border-gold/40 flex items-center justify-center">
-                <Search className="w-12 h-12 text-gold animate-bounce" />
-              </div>
-              <motion.div 
-                animate={{ scale: [1, 1.5, 1], opacity: [0.2, 0.5, 0.2] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="absolute inset-0 bg-gold/20 rounded-full blur-2xl"
-              />
-            </motion.div>
-
-            <div className="space-y-4 relative z-10">
-              <AnimatePresence mode="wait">
-                <motion.h3 
-                  key={scanIndex}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="text-4xl font-black text-white italic tracking-tighter uppercase"
+            {/* Immersive Ticker Grid Background */}
+            <div className="absolute inset-0 opacity-[0.03] grid grid-cols-8 md:grid-cols-12 gap-1 p-4 pointer-events-none">
+              {Array.from({ length: 120 }).map((_, i) => (
+                <motion.div
+                  key={i}
+                  animate={{ 
+                    opacity: [0.2, 1, 0.2],
+                    color: ["#ffffff", "#D4A32F", "#ffffff"]
+                  }}
+                  transition={{ 
+                    duration: 0.1 + Math.random() * 0.3, 
+                    repeat: Infinity,
+                    delay: Math.random() * 2
+                  }}
+                  className="text-[8px] font-mono leading-none"
                 >
-                  {scanMessages[scanIndex]}
-                </motion.h3>
-              </AnimatePresence>
-              <div className="flex items-center justify-center gap-3">
-                <div className="h-1 w-48 bg-white/10 rounded-full overflow-hidden">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${((scanIndex + 1) / scanMessages.length) * 100}%` }}
-                    className="h-full bg-gradient-to-r from-crimson to-gold"
-                  />
+                  {["RELIANCE", "TCS", "HDFC", "INFY", "ICICI", "SBIN", "BHARTI", "ITC", "ADANI", "AXIS"][Math.floor(Math.random() * 10)]}
+                  <br />
+                  ₹{Math.floor(Math.random() * 5000)}.{Math.floor(Math.random() * 99)}
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Neural Scanning Core */}
+            <div className="relative z-10 flex flex-col items-center gap-12 max-w-2xl w-full px-6">
+              <div className="relative">
+                <motion.div
+                  animate={{ 
+                    scale: [1, 1.1, 1],
+                    rotate: [0, 90, 180, 270, 360],
+                  }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                  className="w-48 h-48 rounded-full border border-gold/20 flex items-center justify-center relative"
+                >
+                  <div className="absolute inset-0 rounded-full border-t-2 border-gold shadow-[0_0_30px_rgba(212,163,47,0.3)]" />
+                  <Search className="w-16 h-16 text-gold animate-pulse" />
+                </motion.div>
+                
+                {/* Radial Scan Line */}
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                  className="absolute inset-[-20px] border-l-2 border-gold/60 rounded-full opacity-40"
+                />
+              </div>
+
+              <div className="space-y-6 text-center w-full">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={scanIndex}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="space-y-2"
+                  >
+                    <div className="text-gold font-black tracking-[0.5em] uppercase text-[10px] mb-2">Neural Link Established</div>
+                    <h3 className="text-5xl font-black text-white italic tracking-tighter uppercase leading-tight">
+                      {scanMessages[scanIndex]}
+                    </h3>
+                  </motion.div>
+                </AnimatePresence>
+
+                <div className="flex flex-col gap-3 w-full max-w-md mx-auto">
+                  <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/10 p-[1px]">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${((scanIndex + 1) / scanMessages.length) * 100}%` }}
+                      className="h-full bg-gradient-to-r from-crimson via-gold to-crimson shadow-[0_0_15px_rgba(212,163,47,0.5)] rounded-full"
+                    />
+                  </div>
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
+                      Cross-referencing 842 Data Points
+                    </span>
+                    <span className="text-lg font-black text-gold font-mono-data">
+                      {Math.round(((scanIndex + 1) / scanMessages.length) * 100)}%
+                    </span>
+                  </div>
                 </div>
-                <span className="text-[10px] font-mono text-gold font-black">
-                  {Math.round(((scanIndex + 1) / scanMessages.length) * 100)}%
-                </span>
+              </div>
+
+              {/* Console Footprint */}
+              <div className="grid grid-cols-2 gap-8 w-full border-t border-white/10 pt-8 mt-4">
+                <div className="space-y-1">
+                  <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Global Sentiment</div>
+                  <div className="text-xl font-black text-profit font-mono-data tracking-tighter">BULLISH [9.2]</div>
+                </div>
+                <div className="space-y-1 text-right">
+                  <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Institutional Alpha</div>
+                  <div className="text-xl font-black text-gold font-mono-data tracking-tighter">DETECTED</div>
+                </div>
               </div>
             </div>
-            
-            <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.5em] animate-pulse">
-              Aggregating Tier-1 Exchange Data
+
+            {/* Bottom cinematic text */}
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-[10px] font-black text-white/20 uppercase tracking-[1em] animate-pulse">
+              Autonomous Intelligence Layer v4.0.2
             </div>
           </motion.div>
         ) : isAnalyzing ? (
