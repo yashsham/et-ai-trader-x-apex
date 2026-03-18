@@ -1,16 +1,28 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { AppLayout } from "@/components/AppLayout";
+import { HeroSection } from "@/components/dashboard/HeroSection";
+import { MarketOverview } from "@/components/dashboard/MarketOverview";
+import { TopMovers } from "@/components/dashboard/TopMovers";
+import { AIAlerts } from "@/components/dashboard/AIAlerts";
+import { SentimentGauge } from "@/components/dashboard/SentimentGauge";
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+const Dashboard = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
-    </div>
+    <AppLayout>
+      <div className="space-y-6 animate-fade-in">
+        <HeroSection />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <MarketOverview />
+          </div>
+          <SentimentGauge />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TopMovers />
+          <AIAlerts />
+        </div>
+      </div>
+    </AppLayout>
   );
 };
 
-const Index = PlaceholderIndex;
-
-export default Index;
+export default Dashboard;
