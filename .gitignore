@@ -25,3 +25,19 @@ dist-ssr
 
 # Environment files
 .env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env/
+bin/
+lib64/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST

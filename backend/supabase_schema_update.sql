@@ -86,6 +86,16 @@ CREATE TABLE IF NOT EXISTS public.chart_snapshots (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 8. Notifications
+CREATE TABLE IF NOT EXISTS public.notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id TEXT NOT NULL DEFAULT 'default_user',
+    type TEXT NOT NULL DEFAULT 'info', -- info, success, warning, error
+    message TEXT NOT NULL,
+    read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Enable RLS (Security Best Practice)
 ALTER TABLE public.analysis_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.watchlist ENABLE ROW LEVEL SECURITY;
@@ -94,6 +104,7 @@ ALTER TABLE public.user_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.portfolio_holdings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.news_snapshots ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chart_snapshots ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 -- Dynamic Policies (Anonymous access for now based on app structure)
 CREATE POLICY "Allow All" ON public.analysis_results FOR ALL USING (true);
@@ -103,3 +114,4 @@ CREATE POLICY "Allow All" ON public.user_settings FOR ALL USING (true);
 CREATE POLICY "Allow All" ON public.portfolio_holdings FOR ALL USING (true);
 CREATE POLICY "Allow All" ON public.news_snapshots FOR ALL USING (true);
 CREATE POLICY "Allow All" ON public.chart_snapshots FOR ALL USING (true);
+CREATE POLICY "Allow All" ON public.notifications FOR ALL USING (true);

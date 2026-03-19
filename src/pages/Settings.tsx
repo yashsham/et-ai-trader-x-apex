@@ -2,33 +2,49 @@ import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Settings, User, Bell, Save, Loader2 } from "lucide-react";
 import { getSettings, updateSettings, UserSettings } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
 const SettingsPage = () => {
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<Partial<UserSettings>>({
-    full_name: "Admin User",
-    email: "admin@et-ai-trader.com",
+    full_name: "",
+    email: "",
     timezone: "UTC",
     notifications: true
   });
 
   useEffect(() => {
     async function fetchSettings() {
-      const data = await getSettings();
+      if (!user) return;
+      
+      const data = await getSettings(user.id);
       if (data) {
         setFormData(data);
+      } else {
+        // Pre-fill with Auth info if no DB record yet
+        setFormData(prev => ({
+          ...prev,
+          email: user.email || "",
+          full_name: user.user_metadata?.full_name || ""
+        }));
       }
       setLoading(false);
     }
-    fetchSettings();
-  }, []);
+    
+    if (!authLoading) {
+      fetchSettings();
+    }
+  }, [user, authLoading]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+    
     setSaving(true);
-    const result = await updateSettings(formData);
+    const result = await updateSettings(formData, user.id);
     if (result) {
       toast.success("Settings saved successfully.");
       setFormData(result);

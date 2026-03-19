@@ -405,6 +405,46 @@ class DashboardService:
             "timestamp": datetime.now().isoformat()
         }
 
+    def get_market_status(self):
+        """Check if Indian Market (NSE) is currently open (9:15 AM - 3:30 PM IST, Mon-Fri)."""
+        import pytz
+        from datetime import datetime
+        
+        ist = pytz.timezone('Asia/Kolkata')
+        now_ist = datetime.now(ist)
+        
+        # Weekdays: 0=Mon, 4=Fri
+        is_weekday = now_ist.weekday() <= 4
+        
+        # Market Hours: 9:15 to 15:30
+        h, m = now_ist.hour, now_ist.minute
+        current_time_int = h * 100 + m
+        is_market_hours = 915 <= current_time_int <= 1530
+        
+        is_open = is_weekday and is_market_hours
+        
+        return {
+            "is_open": is_open,
+            "status": "LIVE" if is_open else "CLOSED",
+            "timezone": "IST",
+            "server_time": now_ist.isoformat()
+        }
+
+    def search_stocks(self, query: str):
+        """Search for stocks via DB service."""
+        return db_service.search_symbols(query)
+
+    def trigger_test_notifications(self, user_id: str):
+        """Seed some dummy notifications if the user is new."""
+        notifications = [
+            {"message": "Welcome to ET AI Trader! Explore the AI Assistant for market insights.", "type": "info"},
+            {"message": "Market is showing bullish sentiment in IT sector today.", "type": "success"},
+            {"message": "RELIANCE hit your target price of ₹2950.", "type": "warning"}
+        ]
+        for n in notifications:
+            db_service.create_notification(user_id, n["message"], n["type"])
+        return True
+
     def get_dashboard_summary(self):
         """Synthesize all dashboard data into an AI executive summary. 5-min cache."""
         cache_key = "dashboard_executive_summary"

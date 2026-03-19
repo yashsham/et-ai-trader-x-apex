@@ -3,6 +3,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { AlertTriangle, Shield, TrendingUp, Zap, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PortfolioData {
   holdings: Array<{
@@ -27,20 +28,23 @@ interface PortfolioData {
 }
 
 const PortfolioBrain = () => {
+  const { user, loading: authLoading } = useAuth();
   const [data, setData] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOptimizing, setIsOptimizing] = useState(false);
 
   const loadPortfolio = useCallback(async (isAnalysis = false) => {
+    if (!user) return;
+    
+    setLoading(true);
     if (isAnalysis) setIsOptimizing(true);
-    else setLoading(true);
-
+    
     try {
-      const endpoint = isAnalysis 
+      const baseUrl = isAnalysis 
         ? "http://localhost:8000/api/v1/portfolio/analysis" 
         : "http://localhost:8000/api/v1/portfolio";
         
-      const res = await fetch(endpoint);
+      const res = await fetch(`${baseUrl}?user_id=${user.id}`);
       const json = await res.json();
       if (json.success && json.data) {
         setData(json.data);

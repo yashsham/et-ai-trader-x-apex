@@ -62,7 +62,7 @@ class ChatService:
             }
         ]
 
-    async def stream_chat(self, query: str):
+    async def stream_chat(self, query: str, user_id: str = "default_user"):
         """Streaming version of chat for realtime frontend feedback."""
         import asyncio
         import json

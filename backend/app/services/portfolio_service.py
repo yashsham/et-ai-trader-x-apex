@@ -114,16 +114,22 @@ class PortfolioBrainService:
             "last_updated": datetime.now().isoformat()
         }
 
-    def analyze_portfolio(self, user_id: str = "default_user"):
+    async def analyze_portfolio(self, user_id: str = "default_user"):
         """Trigger AI Portfolio Optimization Swarm."""
+        import asyncio
+        from concurrent.futures import ThreadPoolExecutor
+        
         summary = self.get_portfolio_summary(user_id)
         if not summary["holdings"]:
             return {"error": "Portfolio is empty", "status": "No Holdings"}
 
         try:
-            crew = PortfolioCrew(summary)
-            # Fetch directly from the data field of StandardResponse
-            ai_data = crew.run().get("data", {})
+            loop = asyncio.get_event_loop()
+            with ThreadPoolExecutor() as pool:
+                # Wrap the synchronous crew run in an executor
+                result = await loop.run_in_executor(pool, lambda: PortfolioCrew(summary).run())
+                
+            ai_data = result.get("data", {}) if result else {}
             
             # Map AI data to frontend interface
             div_score = ai_data.get("diversification_score", 50)
@@ -138,6 +144,12 @@ class PortfolioBrainService:
                 ai_insights.append({"type": "suggestion", "text": f"Action: {plan.get('Symbol')} -> {plan.get('Rationale')}"})
             
             if not ai_insights:
+                ai_insights.append({"type": "positive", "text": "Portfolio is well-balanced according to AI swarm metrics."})
+            
+            summary["insights"] = ai_insights
+            summary["last_ai_update"] = datetime.now().isoformat()
+            
+            return summary
                 ai_insights = summary["insights"]
                 
             summary["insights"] = ai_insights

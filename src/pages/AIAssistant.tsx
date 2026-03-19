@@ -3,6 +3,8 @@ import { useState, useRef, useEffect } from "react";
 import { Send, Zap, TrendingUp, BarChart3, Brain, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { useAuth } from "@/contexts/AuthContext";
+
 const suggestedPrompts = [
   "Should I buy RELIANCE now?",
   "What's the best IT stock today?",
@@ -27,6 +29,7 @@ const initialMessages: Message[] = [
 ];
 
 const AIAssistant = () => {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +61,7 @@ const AIAssistant = () => {
     ]);
 
     try {
-      const response = await fetch("http://localhost:8000/api/v1/chat/stream", {
+      const response = await fetch(`http://localhost:8000/api/v1/chat/stream?user_id=${user?.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: text }),

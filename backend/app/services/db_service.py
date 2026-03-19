@@ -275,4 +275,66 @@ class DBService:
         except Exception as e:
             print(f"[DB] save_chart_snapshot error: {e}")
 
+    # ── Notifications ─────────────────────────────────────────────
+    def get_notifications(self, user_id: str = "default_user") -> List[dict]:
+        """Fetch unread notifications for a user."""
+        sb = get_supabase()
+        if not sb: return []
+        try:
+            res = sb.table("notifications").select("*").eq("user_id", user_id).order("created_at", desc=True).limit(20).execute()
+            return res.data or []
+        except Exception as e:
+            print(f"[DB] get_notifications error: {e}")
+            return []
+
+    def mark_notification_read(self, notification_id: str) -> bool:
+        """Mark a specific notification as read."""
+        sb = get_supabase()
+        if not sb: return False
+        try:
+            sb.table("notifications").update({"read": True}).eq("id", notification_id).execute()
+            return True
+        except Exception as e:
+            print(f"[DB] mark_notification_read error: {e}")
+            return False
+
+    def create_notification(self, user_id: str, message: str, type: str = "info") -> Optional[dict]:
+        """Create a new notification for a specific user."""
+        sb = get_supabase()
+        if not sb: return None
+        try:
+            res = sb.table("notifications").insert({
+                "user_id": user_id,
+                "message": message,
+                "type": type
+            }).execute()
+            return res.data[0] if res.data else None
+        except Exception as e:
+            print(f"[DB] create_notification error: {e}")
+            return None
+
+    # ── Search ───────────────────────────────────────────────────
+    def search_symbols(self, query: str) -> List[dict]:
+        """Simple symbol search against common Indian stocks."""
+        # Using a static list for speed, could be a DB table for full coverage.
+        TOP_STOCKS = [
+            {"symbol": "RELIANCE.NS", "name": "Reliance Industries"},
+            {"symbol": "TCS.NS", "name": "Tata Consultancy Services"},
+            {"symbol": "HDFCBANK.NS", "name": "HDFC Bank"},
+            {"symbol": "ICICIBANK.NS", "name": "ICICI Bank"},
+            {"symbol": "INFY.NS", "name": "Infosys"},
+            {"symbol": "HINDUNILVR.NS", "name": "Hindustan Unilever"},
+            {"symbol": "ITC.NS", "name": "ITC Limited"},
+            {"symbol": "SBIN.NS", "name": "State Bank of India"},
+            {"symbol": "BHARTIARTL.NS", "name": "Bharti Airtel"},
+            {"symbol": "BAJFINANCE.NS", "name": "Bajaj Finance"},
+            {"symbol": "TATAMOTORS.NS", "name": "Tata Motors"},
+            {"symbol": "WIPRO.NS", "name": "Wipro"},
+            {"symbol": "ADANIENT.NS", "name": "Adani Enterprises"},
+            {"symbol": "JSWSTEEL.NS", "name": "JSW Steel"},
+            {"symbol": "TITAN.NS", "name": "Titan Company"}
+        ]
+        q = query.upper()
+        return [s for s in TOP_STOCKS if q in s["symbol"] or q in s["name"].upper()]
+
 db_service = DBService()

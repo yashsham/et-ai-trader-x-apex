@@ -255,6 +255,33 @@ def update_settings(request: SettingsRequest):
     return create_success_response(result)
 
 
+@app.get("/api/v1/market/status")
+def get_market_status():
+    """Check if the Indian market is currently open."""
+    return create_success_response(dashboard_service.get_market_status())
+
+@app.get("/api/v1/search/stocks")
+def search_stocks(q: str):
+    """Search for stock symbols."""
+    results = dashboard_service.search_stocks(q)
+    return create_success_response(results)
+
+@app.get("/api/v1/notifications")
+def get_notifications(user_id: str = "default_user"):
+    """Fetch notifications for the current user."""
+    notifications = db_service.get_notifications(user_id)
+    # If empty, seed some test ones once for demo purposes
+    if not notifications:
+        dashboard_service.trigger_test_notifications(user_id)
+        notifications = db_service.get_notifications(user_id)
+    return create_success_response(notifications)
+
+@app.post("/api/v1/notifications/{notification_id}/read")
+def mark_notification_read(notification_id: str):
+    """Mark a notification as read."""
+    success = db_service.mark_notification_read(notification_id)
+    return create_success_response({"success": success})
+
 # ── Dashboard Routes ──────────────────────────────────────────────
 @app.get("/api/v1/market/overview")
 def get_market_overview():
@@ -399,10 +426,10 @@ async def delete_holding(holding_id: str):
         return create_error_response(str(e))
 
 @app.get("/api/v1/portfolio/analysis", response_model=StandardResponse)
-async def analyze_portfolio():
+async def analyze_portfolio(user_id: Optional[str] = "default_user"):
     """Trigger AI Portfolio Optimization Swarm."""
     try:
-        data = portfolio_brain_service.analyze_portfolio()
+        data = await portfolio_brain_service.analyze_portfolio(user_id)
         return create_success_response(data)
     except Exception as e:
         return create_error_response(str(e))
