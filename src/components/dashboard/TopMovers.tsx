@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { TrendingUp, TrendingDown, Loader2 } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api-config";
 
 interface StockMover {
   name: string;
@@ -21,7 +22,7 @@ export function TopMovers() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch("/api/v1/market/movers");
+        const res = await fetch(`${API_BASE_URL}/api/v1/market/movers`);
         const json = await res.json();
         if (json.success && json.data) {
           setData(json.data);

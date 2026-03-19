@@ -127,7 +127,7 @@ class PortfolioBrainService:
             loop = asyncio.get_event_loop()
             with ThreadPoolExecutor() as pool:
                 # Wrap the synchronous crew run in an executor
-                result = await loop.run_in_executor(pool, lambda: PortfolioCrew(summary).run())
+                result = await loop.run_in_executor(pool, lambda: PortfolioCrew(summary, language=language).run())
                 
             ai_data = result.get("data", {}) if result else {}
             
@@ -146,12 +146,6 @@ class PortfolioBrainService:
             if not ai_insights:
                 ai_insights.append({"type": "positive", "text": "Portfolio is well-balanced according to AI swarm metrics."})
             
-            summary["insights"] = ai_insights
-            summary["last_ai_update"] = datetime.now().isoformat()
-            
-            return summary
-                ai_insights = summary["insights"]
-                
             summary["insights"] = ai_insights
             return summary
         except Exception as e:

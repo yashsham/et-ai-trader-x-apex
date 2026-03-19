@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api-config";
 
 export function SentimentGauge() {
   const [sentiment, setSentiment] = useState(50);
@@ -9,7 +10,7 @@ export function SentimentGauge() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch("/api/v1/market/sentiment");
+        const res = await fetch(`${API_BASE_URL}/api/v1/market/sentiment`);
         const json = await res.json();
         if (json.success && json.data) {
           setSentiment(json.data.score);

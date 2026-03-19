@@ -110,6 +110,7 @@ async def general_exception_handler(request: Request, exc: Exception):
 class AnalysisRequest(BaseModel):
     symbol: str = "RELIANCE.NS"
     portfolio: dict = {}
+    language: str = "English"
 
 class WatchlistRequest(BaseModel):
     symbol: str
@@ -127,6 +128,7 @@ class RadarScanRequest(BaseModel):
     symbols: List[str]
     timeframe: str = "1mo"
     risk_profile: str = "Aggressive"
+    language: str = "English"
 
 class PortfolioHoldingRequest(BaseModel):
     symbol: str
@@ -144,6 +146,7 @@ class ChatRequest(BaseModel):
     symbol: Optional[str] = None
     portfolio_context: Optional[dict] = None
     chat_session_id: Optional[str] = None
+    language: str = "English"
 
 
 # ── Core Routes ───────────────────────────────────────────────────
@@ -167,7 +170,7 @@ async def analyze_stock(request: AnalysisRequest):
         details={"symbol": request.symbol}
     )
     try:
-        crew = TradingCrew(request.symbol, request.portfolio)
+        crew = TradingCrew(request.symbol, request.portfolio, language=request.language)
         result = crew.run() # This now returns normalized format directly
         
         audit_logger.log_event(
@@ -352,7 +355,7 @@ async def search_market_news(q: str):
 @app.post("/api/v1/radar/scan")
 async def run_radar_scan(request: RadarScanRequest):
     """Trigger a comprehensive AI alpha-hunt scan on a list of symbols."""
-    results = await radar_service.run_comprehensive_scan(request.symbols)
+    results = await radar_service.run_comprehensive_scan(request.symbols, language=request.language)
     return create_success_response(results, source_metadata={"source": "OpportunityRadar"})
 
 @app.get("/api/v1/radar/live")
@@ -426,10 +429,10 @@ async def delete_holding(holding_id: str):
         return create_error_response(str(e))
 
 @app.get("/api/v1/portfolio/analysis", response_model=StandardResponse)
-async def analyze_portfolio(user_id: Optional[str] = "default_user"):
+async def analyze_portfolio(user_id: Optional[str] = "default_user", language: str = "English"):
     """Trigger AI Portfolio Optimization Swarm."""
     try:
-        data = await portfolio_brain_service.analyze_portfolio(user_id)
+        data = await portfolio_brain_service.analyze_portfolio(user_id, language=language)
         return create_success_response(data)
     except Exception as e:
         return create_error_response(str(e))

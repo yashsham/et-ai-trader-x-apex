@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
+import { API_BASE_URL } from "@/lib/api-config";
 import { ArrowUpRight, Clock, Loader2 } from "lucide-react";
 
 interface NewsItem {
@@ -26,7 +27,7 @@ const MarketNews = () => {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch("/api/v1/market/news");
+        const res = await fetch(`${API_BASE_URL}/api/v1/market/news`);
         const json = await res.json();
         if (json.success && json.data) {
           setNews(json.data);

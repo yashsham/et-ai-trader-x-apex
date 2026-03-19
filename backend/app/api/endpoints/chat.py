@@ -15,7 +15,7 @@ async def chat_endpoint(request: ChatRequest):
         if not request.query:
             return create_error_response("Query cannot be empty", code="VALIDATION_ERROR")
         
-        result = await chat_service.process_chat(request.query)
+        result = await chat_service.process_chat(request.query, language=request.language)
         return create_success_response(result, source_metadata={"source": "ChatService"})
     except Exception as e:
         print("[Chat Endpoint Error]:", e)

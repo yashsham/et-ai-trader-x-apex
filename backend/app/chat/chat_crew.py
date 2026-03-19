@@ -5,10 +5,10 @@ from app.core.response_normalizer import response_normalizer
 import json
 
 class ChatbotCrew:
-    def __init__(self, query: str, context: dict = {}):
+    def __init__(self, query: str, context: dict = {}, language: str = "English"):
         self.query = query
         self.context = context
-        self.agents = TradingAgents()
+        self.agents = TradingAgents(language=language)
 
     def run(self):
         # 1. Specialized Agents

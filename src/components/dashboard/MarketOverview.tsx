@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { TrendingUp, TrendingDown, Loader2 } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api-config";
 
 interface OverviewData {
   symbol: string;
@@ -17,7 +18,7 @@ export function MarketOverview() {
     async function fetchData() {
       try {
         // Use relative URL assuming proxy, or hardcode localhost for dev
-        const res = await fetch("/api/v1/market/overview");
+        const res = await fetch(`${API_BASE_URL}/api/v1/market/overview`);
         const json = await res.json();
         if (json.success && json.data) {
           setData(json.data);

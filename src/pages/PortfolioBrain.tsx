@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { AppLayout } from "@/components/AppLayout";
+import { API_BASE_URL } from "@/lib/api-config";
 import { AlertTriangle, Shield, TrendingUp, Zap, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -43,8 +44,8 @@ const PortfolioBrain = () => {
     
     try {
       const baseUrl = isAnalysis 
-        ? "/api/v1/portfolio/analysis" 
-        : "/api/v1/portfolio";
+        ? `${API_BASE_URL}/api/v1/portfolio/analysis` 
+        : `${API_BASE_URL}/api/v1/portfolio`;
 
       const qParams = new URLSearchParams({ 
         user_id: user.id,

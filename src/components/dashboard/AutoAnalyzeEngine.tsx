@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { API_BASE_URL } from "@/lib/api-config";
 import { 
   Zap, 
   Search, 
@@ -103,7 +104,7 @@ export function AutoAnalyzeEngine() {
         if (currentStep === logs.length - 1) {
           try {
             // Trigger Real Backend Analysis
-            const response = await fetch("/api/v1/analyze-stock", {
+            const response = await fetch(`${API_BASE_URL}/api/v1/analyze-stock`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ symbol: targetSymbol, portfolio: {}, language: language })

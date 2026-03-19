@@ -4,6 +4,7 @@ from typing import Optional, Dict, Any
 class ChatRequest(BaseModel):
     query: str
     context: Optional[Dict[str, Any]] = None
+    language: str = "English"
 
 class ChatResponse(BaseModel):
     response: str

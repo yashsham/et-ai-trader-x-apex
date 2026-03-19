@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Search, Bell, User, TrendingUp, LogOut, Settings as SettingsIcon, ChevronDown, Loader2, Globe } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api-config";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage, Language } from "@/contexts/LanguageContext";
@@ -23,7 +24,7 @@ export function TopNavbar() {
   useEffect(() => {
     const fetchMarketStatus = async () => {
       try {
-        const res = await fetch("/api/v1/market/status");
+        const res = await fetch(`${API_BASE_URL}/api/v1/market/status`);
         const json = await res.json();
         if (json.success) setMarketStatus(json.data);
       } catch (err) {
@@ -41,7 +42,7 @@ export function TopNavbar() {
     if (!user) return;
     const fetchNotifications = async () => {
       try {
-        const res = await fetch(`/api/v1/notifications?user_id=${user.id}`);
+        const res = await fetch(`${API_BASE_URL}/api/v1/notifications?user_id=${user.id}`);
         const json = await res.json();
         if (json.success) setNotifications(json.data);
       } catch (err) {
@@ -53,7 +54,7 @@ export function TopNavbar() {
 
   const markRead = async (id: string) => {
     try {
-      await fetch(`/api/v1/notifications/${id}/read`, { method: "POST" });
+      await fetch(`${API_BASE_URL}/api/v1/notifications/${id}/read`, { method: "POST" });
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
     } catch (err) {}
   };
@@ -70,7 +71,7 @@ export function TopNavbar() {
     setIsSearching(true);
     searchTimeout.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/v1/search/stocks?q=${searchQuery}`);
+        const res = await fetch(`${API_BASE_URL}/api/v1/search/stocks?q=${searchQuery}`);
         const json = await res.json();
         if (json.success) setSearchResults(json.data);
       } catch (err) {}

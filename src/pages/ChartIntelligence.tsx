@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/AppLayout";
+import { API_BASE_URL } from "@/lib/api-config";
 import { useState, useEffect } from "react";
 import { BookmarkPlus, Zap, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -37,7 +38,7 @@ const ChartIntelligence = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/v1/charts/${targetSymbol}?period=${tf}`);
+      const res = await fetch(`${API_BASE_URL}/api/v1/charts/${targetSymbol}?period=${tf}`);
       if (!res.ok) {
         throw new Error(await res.text());
       }
@@ -90,7 +91,7 @@ const ChartIntelligence = () => {
 
   const handleAddToWatchlist = async () => {
     try {
-      const res = await fetch("/api/v1/watchlist", {
+      const res = await fetch(`${API_BASE_URL}/api/v1/watchlist`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

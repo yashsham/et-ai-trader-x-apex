@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/AppLayout";
+import { API_BASE_URL } from "@/lib/api-config";
 import { History, Search, Filter, ArrowUpRight, ArrowDownRight, Zap, Loader2, Calendar } from "lucide-react";
 import { AISignalCard, type SignalData } from "@/components/dashboard/AISignalCard";
 import { TradePlanModal } from "@/components/dashboard/TradePlanModal";
@@ -25,7 +26,7 @@ const SignalHistory = () => {
   useEffect(() => {
     async function fetchHistory() {
       try {
-        const response = await fetch("/api/v1/history?limit=50");
+        const response = await fetch(`${API_BASE_URL}/api/v1/history?limit=50`);
         const data = await response.json();
         
         if (data.status === "success") {

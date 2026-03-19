@@ -1,6 +1,7 @@
 import { AppLayout } from "@/components/AppLayout";
 import { useState, useRef, useEffect } from "react";
-import { Send, Zap, TrendingUp, BarChart3, Brain, Loader2 } from "lucide-react";
+import { Send, Bot, User, Loader2, Sparkles, Languages, Zap, TrendingUp, BarChart3, Brain } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api-config";
 import { toast } from "sonner";
 
 import { useAuth } from "@/contexts/AuthContext";
@@ -63,7 +64,7 @@ const AIAssistant = () => {
     ]);
 
     try {
-      const response = await fetch(`/api/v1/chat/stream?user_id=${user?.id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/chat/stream?user_id=${user?.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: text, language: language }),

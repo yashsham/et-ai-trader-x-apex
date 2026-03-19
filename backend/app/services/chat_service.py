@@ -8,32 +8,26 @@ class ChatService:
     def __init__(self):
         pass
 
-    async def process_chat(self, query: str, user_id: str = "default_user", session_id: Optional[str] = None):
+    async def process_chat(self, query: str, user_id: str = "default_user", session_id: Optional[str] = None, language: str = "English"):
         """Main entry point for processing AI Assistant queries."""
         try:
             # 1. Initialize Crew with context
-            # (In a real app, we'd fetch previous messages from DB here for memory)
-            crew = ChatbotCrew(query)
+            crew = ChatbotCrew(query, language=language)
             
             # 2. Execute Swarm
             result = crew.run()
             
-            # 3. Persist to History (Audit Log as proxy for now)
-            db_service.save_audit_log(
-                event_type="chat_interaction",
-                severity="INFO",
-                user_id=user_id,
-                details={
-                    "query": query,
-                    "session_id": session_id,
-                    "response_summary": result.get("data", {}).get("explanation")[:100] if result.get("data") else "Error"
-                }
-            )
+            # 3. Dedicated Translation Layer
+            from app.services.translation_service import translation_service
+            data = result.get("data", {})
+            explanation = data.get("explanation", "I'm sorry, I couldn't process that.")
+            
+            if language != "English":
+                explanation = translation_service.translate(explanation, language)
 
             # 4. Return formatted response
-            data = result.get("data", {})
             return {
-                "response": data.get("explanation", "I'm sorry, I couldn't process that."),
+                "response": explanation,
                 "answer_type": "INSIGHT",
                 "referenced_symbols": data.get("symbols", []),
                 "cited_sources": ["yfinance", "NewsAPI", "Internal RAG"],

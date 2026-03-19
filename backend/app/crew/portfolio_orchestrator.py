@@ -57,13 +57,13 @@ class PortfolioCrew:
             agent=decision_maker
         )
 
-        # Task 5: Hinglish Coaching
+        # Task 5: Multi-Language Coaching
         explanation_task = Task(
             description=(
-                "Write a professional yet encouraging explanation of the portfolio's status in Hinglish. "
+                f"Write a professional yet encouraging explanation of the portfolio's status in {self.language}. "
                 "Tell the user exactly what to do next to sleep better at night regarding their investments."
             ),
-            expected_output="2 paragraphs of Hinglish reasoning with a 'Next Steps' summary.",
+            expected_output=f"2 paragraphs of {self.language} reasoning with a 'Next Steps' summary.",
             agent=educator
         )
 

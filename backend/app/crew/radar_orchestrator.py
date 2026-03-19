@@ -4,10 +4,11 @@ from app.core.response_normalizer import response_normalizer
 import json
 
 class RadarCrew:
-    def __init__(self, symbol: str, technical_context: dict = None):
+    def __init__(self, symbol: str, technical_context: dict = None, language: str = "English"):
         self.symbol = symbol
         self.technical_context = technical_context or {}
-        self.agents = TradingAgents()
+        self.language = language
+        self.agents = TradingAgents(language=language)
 
     def run(self):
         # Initialize specialized agents
@@ -52,14 +53,14 @@ class RadarCrew:
             agent=decision_maker
         )
 
-        # Task 4: Hinglish Explanation
+        # Task 4: Multi-Language Explanation
         explanation_task = Task(
             description=(
-                "Take all the findings and write a short, punchy explanation in Hinglish. "
+                f"Take all the findings and write a short, punchy explanation in {self.language}. "
                 "Explain 'Why this stock?', 'Why now?', and 'Where to exit?'. "
                 "Make it feel like a professional mentor speaking to a student."
             ),
-            expected_output="2-3 paragraphs of Hinglish reasoning with a clear summary line.",
+            expected_output=f"2-3 paragraphs of {self.language} reasoning with a clear summary line.",
             agent=educator
         )
 
@@ -75,4 +76,17 @@ class RadarCrew:
         
         # Normalize for internal schema
         normalized = response_normalizer.normalize(raw_result, symbol=self.symbol, source="OpportunityRadar")
+        
+        # ── DEDICATED TRANSLATION LAYER ──
+        if self.language != "English" and isinstance(normalized.data, dict):
+            from app.services.translation_service import translation_service
+            # Radar usually has 'explanation' or 'reasoning'
+            explanation = normalized.data.get("explanation") or normalized.data.get("reasoning")
+            if explanation:
+                translated = translation_service.translate(explanation, self.language)
+                if "explanation" in normalized.data:
+                    normalized.data["explanation"] = translated
+                else:
+                    normalized.data["reasoning"] = translated
+
         return normalized.model_dump()

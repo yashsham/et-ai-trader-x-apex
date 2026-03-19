@@ -4,15 +4,16 @@ from app.crew.tasks import TradingTasks
 from app.services.market_service import market_service
 from app.services.signal_service import signal_service
 from app.services.db_service import db_service
-from app.core.response_normalizer import response_normalizer
+from app.services.translation_service import translation_service
 import json
 
 class TradingCrew:
-    def __init__(self, symbol: str, portfolio: dict):
+    def __init__(self, symbol: str, portfolio: dict, language: str = "English"):
         self.symbol = symbol
         self.portfolio = portfolio
-        self.agents = TradingAgents()
+        self.agents = TradingAgents(language=language)
         self.tasks = TradingTasks()
+        self.language = language
 
     def run(self):
         # Initialize Agents
@@ -41,11 +42,19 @@ class TradingCrew:
 
         # Normalize result using our shared utility
         raw_result = str(result)
+        from app.core.response_normalizer import response_normalizer
         normalized = response_normalizer.normalize(raw_result, source="TradingCrew")
+        
+        # ── DEDICATED TRANSLATION LAYER ──
+        # If language is NOT English, use Google Translate to ensure high-quality output
+        # specifically for the 'reasoning' field which contains the bulk of the content.
+        if self.language != "English" and isinstance(normalized.data, dict):
+            reasoning = normalized.data.get("reasoning")
+            if reasoning:
+                translated_reasoning = translation_service.translate(reasoning, self.language)
+                normalized.data["reasoning"] = translated_reasoning
 
         # ── ENSURE FRONTEND COMPATIBILITY ──
-        # If the normalized data is a dict (JSON), wrap it in 'parsed_data' 
-        # so the frontend's data.parsed_data.decision logic works correctly.
         final_data = normalized.data
         if isinstance(final_data, dict) and "parsed_data" not in final_data:
             normalized.data = {"parsed_data": final_data}
@@ -57,6 +66,5 @@ class TradingCrew:
             portfolio=self.portfolio,
         )
 
-        # Return standardized struct
         return normalized.model_dump()
 

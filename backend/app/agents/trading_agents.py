@@ -5,13 +5,19 @@ from crewai import Agent
 from app.services.llm_router import llm_router
 
 class TradingAgents:
-    def __init__(self):
+    def __init__(self, language: str = "English"):
         self.llm = llm_router.get_router()
+        self.language = language
 
     def _make_agent(self, role, goal, backstory):
+        # Inject language instruction into the goal
+        effective_goal = f"{goal}. IMPORTANT: Your total output (reasoning and final answer) MUST be in {self.language} only."
+        if self.language.lower() != "english":
+             effective_goal += f" Even Technical terms should be explained in {self.language} for better understanding."
+             
         return Agent(
             role=role,
-            goal=goal,
+            goal=effective_goal,
             backstory=backstory,
             llm=self.llm,
             verbose=True,

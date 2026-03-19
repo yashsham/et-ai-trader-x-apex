@@ -37,28 +37,32 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+import { LanguageProvider } from "./contexts/LanguageContext";
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-            <Route path="/radar" element={<ProtectedRoute><OpportunityRadar /></ProtectedRoute>} />
-            <Route path="/history" element={<ProtectedRoute><SignalHistory /></ProtectedRoute>} />
-            <Route path="/charts" element={<ProtectedRoute><ChartIntelligence /></ProtectedRoute>} />
-            <Route path="/portfolio" element={<ProtectedRoute><PortfolioBrain /></ProtectedRoute>} />
-            <Route path="/assistant" element={<ProtectedRoute><AIAssistant /></ProtectedRoute>} />
-            <Route path="/video" element={<ProtectedRoute><AIVideoEngine /></ProtectedRoute>} />
-            <Route path="/news" element={<ProtectedRoute><MarketNews /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <LanguageProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route path="/radar" element={<ProtectedRoute><OpportunityRadar /></ProtectedRoute>} />
+              <Route path="/history" element={<ProtectedRoute><SignalHistory /></ProtectedRoute>} />
+              <Route path="/charts" element={<ProtectedRoute><ChartIntelligence /></ProtectedRoute>} />
+              <Route path="/portfolio" element={<ProtectedRoute><PortfolioBrain /></ProtectedRoute>} />
+              <Route path="/assistant" element={<ProtectedRoute><AIAssistant /></ProtectedRoute>} />
+              <Route path="/video" element={<ProtectedRoute><AIVideoEngine /></ProtectedRoute>} />
+              <Route path="/news" element={<ProtectedRoute><MarketNews /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </LanguageProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

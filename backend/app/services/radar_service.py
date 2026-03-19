@@ -45,28 +45,32 @@ class RadarService:
             "pattern_strength": strength
         }
 
-    async def scan_symbol(self, symbol: str) -> Dict[str, Any]:
+    async def scan_symbol(self, symbol: str, language: str = "English") -> Dict[str, Any]:
         """Perform a comprehensive AI-driven scan for a single symbol."""
         audit_logger.log_event("RADAR_SCAN", "LOW", {"symbol": symbol})
         
         try:
-            # 1. Fetch History
+            # ... (history and patterns logic)
             ticker = yf.Ticker(symbol)
             df = ticker.history(period="3mo")
             if df.empty:
                 return {"symbol": symbol, "error": "No data found"}
 
-            # 2. Technical Pre-filter
             tech = self.detect_technical_patterns(df)
             
             # 3. Run AI Radar Crew
-            crew = RadarCrew(symbol, technical_context=tech)
+            crew = RadarCrew(symbol, technical_context=tech, language=language)
             ai_result = crew.run()
             
             # 4. Synthesize Final Radar Item
-            # Expected ai_result is StandardResponse.data format
             data = ai_result.get("data", {})
             
+            # --- Dedicated Translation Layer ---
+            reasoning = data.get("explanation") or data.get("reasoning")
+            if language != "English" and reasoning:
+                from app.services.translation_service import translation_service
+                reasoning = translation_service.translate(reasoning, language)
+
             radar_item = {
                 "symbol": symbol,
                 "signal_type": data.get("signal_type", "HOLD"),
@@ -76,7 +80,7 @@ class RadarService:
                 "entry_zone": data.get("entry_zone") or tech.get("detected_pattern"),
                 "target": data.get("target"),
                 "stop_loss": data.get("stop_loss"),
-                "reasoning": data.get("explanation") or data.get("reasoning"),
+                "reasoning": reasoning,
                 "tech_metrics": tech,
                 "timestamp": datetime.now().isoformat()
             }
@@ -89,13 +93,13 @@ class RadarService:
             print(f"[Radar] Error scanning {symbol}: {e}")
             return {"symbol": symbol, "error": str(e)}
 
-    async def run_comprehensive_scan(self, symbols: List[str] = None) -> List[Dict[str, Any]]:
+    async def run_comprehensive_scan(self, symbols: List[str] = None, language: str = "English") -> List[Dict[str, Any]]:
         """Scan multiple symbols and rank them by conviction."""
         target_symbols = symbols or self.default_symbols
         results = []
         
         for s in target_symbols:
-            res = await self.scan_symbol(s)
+            res = await self.scan_symbol(s, language=language)
             if "error" not in res:
                 results.append(res)
         

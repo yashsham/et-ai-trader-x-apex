@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, ArrowRight, BarChart3, X } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api-config";
 import { useNavigate } from "react-router-dom";
 
 export function AIDecisionStrip() {
@@ -11,7 +12,7 @@ export function AIDecisionStrip() {
   useEffect(() => {
     async function checkTodayOpportunities() {
       try {
-        const response = await fetch("/api/v1/history/daily?decision=BUY");
+        const response = await fetch(`${API_BASE_URL}/api/v1/history/daily?decision=BUY`);
         const data = await response.json();
         if (data.status === "success") {
           setBuyCount(data.data.count);
