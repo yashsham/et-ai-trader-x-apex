@@ -73,7 +73,10 @@ export function AutoAnalyzeEngine() {
     risk: "Medium",
     sector: "AI Tracked",
     volume: "Live Scan",
-    explanation: analysisResult.substring(0, 120) + "..."
+    explanation: analysisResult.substring(0, 120) + "...",
+    target: parsedData.target,
+    stopLoss: parsedData.stop_loss,
+    entryZone: parsedData.entry
   };
 
   useEffect(() => {
@@ -103,26 +106,35 @@ export function AutoAnalyzeEngine() {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ symbol: targetSymbol, portfolio: {} })
             });
-            const data = await response.json();
-            console.log("AI Decision:", data);
+            const raw = await response.json();
+            console.log("AI Decision Raw:", raw);
             
-            if (data && data.parsed_data && data.parsed_data.decision) {
-              setAnalysisResult(data.parsed_data.reasoning || data.decision_output);
-              const dec = data.parsed_data.decision.toUpperCase();
-              setAnalysisDecision(dec);
+            // 1. Unpack the payload (StandardResponse.data or raw)
+            const payload = raw.data || raw;
+            
+            // 2. Identify core data (Backend now sends it wrapped in parsed_data for consistency)
+            const data = payload.parsed_data || payload;
+            
+            if (data && data.decision) {
+              setAnalysisResult(data.reasoning || "Analysis Complete.");
+              setAnalysisDecision(data.decision.toUpperCase());
               setParsedData({
-                entry: data.parsed_data.entry || "N/A",
-                target: data.parsed_data.target || "N/A",
-                stop_loss: data.parsed_data.stop_loss || "N/A",
-                confidence: data.parsed_data.confidence || 0,
+                entry: data.entry || "N/A",
+                target: data.target || "N/A",
+                stop_loss: data.stop_loss || "N/A",
+                confidence: data.confidence || 0.85,
               });
-            } else if (data && data.decision_output) {
-              setAnalysisResult(data.decision_output);
-              const outUpper = data.decision_output.toUpperCase();
+            } else if (payload.raw_text || payload.decision_output) {
+              const text = payload.raw_text || payload.decision_output;
+              setAnalysisResult(text);
+              const outUpper = text.toUpperCase();
               if (outUpper.includes("BUY")) setAnalysisDecision("BUY");
               else if (outUpper.includes("SELL")) setAnalysisDecision("SELL");
               else if (outUpper.includes("HOLD")) setAnalysisDecision("HOLD");
-              else setAnalysisDecision("UNKNOWN");
+              else setAnalysisDecision("HOLD");
+            } else {
+              setAnalysisResult("AI Agent logic completed, but no structured recommendation was detected.");
+              setAnalysisDecision("HOLD");
             }
           } catch (error) {
             console.error("Backend Error:", error);

@@ -4,6 +4,7 @@ from app.crew.tasks import TradingTasks
 from app.services.market_service import market_service
 from app.services.signal_service import signal_service
 from app.services.db_service import db_service
+from app.core.response_normalizer import response_normalizer
 import json
 
 class TradingCrew:
@@ -38,12 +39,24 @@ class TradingCrew:
 
         result = crew.kickoff()
 
+        # Normalize result using our shared utility
+        raw_result = str(result)
+        normalized = response_normalizer.normalize(raw_result, source="TradingCrew")
+
+        # ── ENSURE FRONTEND COMPATIBILITY ──
+        # If the normalized data is a dict (JSON), wrap it in 'parsed_data' 
+        # so the frontend's data.parsed_data.decision logic works correctly.
+        final_data = normalized.data
+        if isinstance(final_data, dict) and "parsed_data" not in final_data:
+            normalized.data = {"parsed_data": final_data}
+
         # Persist analysis result to Supabase
         db_service.save_analysis(
             symbol=self.symbol,
-            decision_output=str(result),
+            decision_output=raw_result,
             portfolio=self.portfolio,
         )
 
-        return result
+        # Return standardized struct
+        return normalized.model_dump()
 

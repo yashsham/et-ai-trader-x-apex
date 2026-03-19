@@ -1,73 +1,85 @@
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Zap, ArrowRight, BarChart3 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Zap, ArrowRight, BarChart3, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { getAllAnalyses } from "@/lib/supabase";
 
 export function AIDecisionStrip() {
   const navigate = useNavigate();
   const [buyCount, setBuyCount] = useState(0);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     async function checkTodayOpportunities() {
-      // fetch recent analyses to find BUY signals from today
-      const results = await getAllAnalyses(20);
-      const today = new Date().toDateString();
-      const count = results.filter(r => 
-        r.decision === "BUY" && new Date(r.created_at).toDateString() === today
-      ).length;
-      
-      setBuyCount(count);
+      try {
+        const response = await fetch("http://localhost:8000/api/v1/history/daily?decision=BUY");
+        const data = await response.json();
+        if (data.status === "success") {
+          setBuyCount(data.data.count);
+        }
+      } catch (error) {
+        console.error("Failed to check daily signals:", error);
+      }
     }
+    
     checkTodayOpportunities();
+
+    const handleNewSignal = () => {
+      checkTodayOpportunities();
+      setIsVisible(true); // Re-show if a new signal comes in
+    };
+    window.addEventListener('new-ai-signal', handleNewSignal);
+    
+    return () => window.removeEventListener('new-ai-signal', handleNewSignal);
   }, []);
 
-  if (buyCount === 0) return null; // Hide strip if no opportunities
+  const isAlert = buyCount > 0;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="relative overflow-hidden rounded-xl"
-    >
-      {/* Gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[hsl(var(--profit))] via-[hsl(var(--profit)/0.8)] to-[hsl(var(--gold)/0.9)]" />
-      
-      {/* Shimmer overlay */}
-      <div className="absolute inset-0 signal-shimmer opacity-40" />
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={isAlert ? 'alert' : 'monitoring'}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        className="relative overflow-hidden rounded-xl shadow-lg mt-4"
+      >
+        {/* Vibrant Gradient Background */}
+        <div className={`absolute inset-0 bg-gradient-to-r ${
+          isAlert 
+            ? 'from-[#10b981] via-[#10b981] to-[#f59e0b]' 
+            : 'from-[#10b981]/80 via-[#10b981]/60 to-[#f59e0b]/60'
+        }`} />
+        
+        <div className="absolute inset-0 signal-shimmer opacity-30 pointer-events-none" />
+  
+        <div className="relative z-10 flex items-center justify-between px-6 py-3.5">
+          <div className="flex items-center gap-3">
+            <Zap className="w-5 h-5 text-white fill-current animate-pulse" />
+            <span className="text-sm font-bold text-white">
+              {isAlert 
+                ? `🔥 AI ALERT: ${buyCount} high-confidence BUY ${buyCount === 1 ? 'opportunity' : 'opportunities'} detected today` 
+                : "⚡ AI PULSE: Monitoring Indian markets for high-confidence breakouts..."}
+            </span>
+          </div>
 
-      <div className="relative z-10 flex items-center justify-between px-5 py-3.5">
-        <div className="flex items-center gap-3">
-          <motion.div
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <Zap className="w-5 h-5 text-white" />
-          </motion.div>
-          <span className="text-sm font-bold text-white">
-            🔥 AI ALERT: {buyCount} high-confidence BUY {buyCount === 1 ? 'opportunity' : 'opportunities'} detected today
-          </span>
+          <div className="flex items-center gap-3">
+            {isAlert && (
+              <button
+                onClick={() => navigate("/history")}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition-all border border-white/10"
+              >
+                View Signals →
+              </button>
+            )}
+            <button
+              onClick={() => navigate("/radar")}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/5"
+            >
+              <BarChart3 className="w-3.5 h-3.5" /> Auto-Analyze Top Movers
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/history")}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white/20 backdrop-blur-sm text-white text-xs font-bold hover:bg-white/30 transition-colors"
-          >
-            View Signals <ArrowRight className="w-3 h-3" />
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/radar")}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm text-white/90 text-xs font-bold hover:bg-white/20 transition-colors"
-          >
-            <BarChart3 className="w-3 h-3" /> Auto-Analyze Top Movers
-          </motion.button>
-        </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

@@ -1,6 +1,8 @@
 import { AppLayout } from "@/components/AppLayout";
 import { useState, useEffect } from "react";
 import { BookmarkPlus, Zap, Loader2, Search } from "lucide-react";
+import { toast } from "sonner";
+import { TradePlanModal } from "@/components/dashboard/TradePlanModal";
 
 interface ChartData {
   date: string;
@@ -29,18 +31,19 @@ const ChartIntelligence = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeframe, setTimeframe] = useState("1mo");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchData = async (targetSymbol: string, tf: string) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/v1/charts/${targetSymbol}?period=${tf}`);
+      const res = await fetch(`http://localhost:8000/api/v1/charts/${targetSymbol}?period=${tf}`);
       if (!res.ok) {
         throw new Error(await res.text());
       }
       const data = await res.json();
-      setChartData(data.chartData);
-      setAnalysis(data.analysis);
+      setChartData(data.data?.chartData || []);
+      setAnalysis(data.data?.analysis || null);
       setSymbol(targetSymbol);
     } catch (err: any) {
       setError(err.message || "Failed to fetch chart data");
@@ -53,10 +56,54 @@ const ChartIntelligence = () => {
     fetchData(symbol, timeframe);
   }, [timeframe]);
 
+  const handleExecuteTrade = () => {
+    if (!analysis || chartData.length === 0) {
+      toast.error("Analysis not ready. Please wait for the AI to complete its scan.");
+      return;
+    }
+    setIsModalOpen(true);
+  };
+
+  const currentPrice = chartData[chartData.length - 1]?.close || 0;
+  const signalData = analysis ? {
+    id: Date.now(),
+    stock: symbol.split('.')[0],
+    sector: "Equity",
+    signal: analysis.trend.includes("Bullish") ? "Breakout" : "Bearish",
+    confidence: 85,
+    expectedMove: parseFloat(((analysis.target - currentPrice) / currentPrice * 100).toFixed(2)),
+    price: currentPrice.toFixed(2),
+    volume: (chartData[chartData.length - 1]?.volume / 1000000).toFixed(1) + "M",
+    risk: analysis.risk_reward.includes('1:1') ? "Medium" as const : "Low" as const,
+    explanation: analysis.explanation,
+    target: analysis.target.toString(),
+    stopLoss: analysis.stop_loss.toString(),
+    entryZone: `₹${analysis.support.toFixed(1)} – ₹${(analysis.support * 1.01).toFixed(1)}`
+  } : null;
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchInput.trim()) {
       fetchData(searchInput.trim(), timeframe);
+    }
+  };
+
+  const handleAddToWatchlist = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/api/v1/watchlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ symbol: symbol }),
+      });
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+      toast.success(`${symbol} added to watchlist`);
+    } catch (err: any) {
+      console.error(err);
+      toast.error(`Failed to add ${symbol} to watchlist`);
     }
   };
 
@@ -98,7 +145,10 @@ const ChartIntelligence = () => {
                 <Search className="w-4 h-4" />
               </button>
             </form>
-            <button className="flex items-center gap-2 px-4 py-2 h-9 rounded-lg bg-accent text-foreground text-xs font-semibold hover:bg-muted transition-colors">
+            <button 
+              onClick={handleAddToWatchlist}
+              className="flex items-center gap-2 px-4 py-2 h-9 rounded-lg bg-accent text-foreground text-xs font-semibold hover:bg-muted transition-colors"
+            >
               <BookmarkPlus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Add to Watchlist</span>
             </button>
@@ -112,7 +162,7 @@ const ChartIntelligence = () => {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Chart */}
+          {/* Chart Section */}
           <div className="lg:col-span-2 ai-card p-4 relative">
             <div className="flex items-center justify-between mb-4">
               <div className="font-bold text-lg text-foreground tracking-wide">{symbol}</div>
@@ -226,25 +276,25 @@ const ChartIntelligence = () => {
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-xs p-2 rounded hover:bg-white/5 transition-colors">
                   <span className="text-muted-foreground">Trend Output</span>
-                  <span className={`font-semibold ${analysis?.trend.includes("Bullish") ? "text-profit" : analysis?.trend.includes("Bearish") ? "text-loss" : "text-gold"}`}>
+                  <span className={`font-semibold ${analysis?.trend?.includes("Bullish") ? "text-profit" : analysis?.trend?.includes("Bearish") ? "text-loss" : "text-gold"}`}>
                     {analysis?.trend || "..."}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-xs p-2 rounded hover:bg-white/5 transition-colors">
                   <span className="text-muted-foreground">Support Floor</span>
-                  <span className="font-mono-data text-foreground">₹{analysis?.support.toFixed(1) || "..."}</span>
+                  <span className="font-mono-data text-foreground">₹{analysis?.support?.toFixed(1) || "..."}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs p-2 rounded hover:bg-white/5 transition-colors">
                   <span className="text-muted-foreground">Resistance Ceiling</span>
-                  <span className="font-mono-data text-foreground">₹{analysis?.resistance.toFixed(1) || "..."}</span>
+                  <span className="font-mono-data text-foreground">₹{analysis?.resistance?.toFixed(1) || "..."}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs p-2 rounded bg-gold/5 border border-gold/10">
                   <span className="text-gold font-medium">AI Price Target</span>
-                  <span className="font-mono-data text-gold font-bold">₹{analysis?.target.toFixed(1) || "..."}</span>
+                  <span className="font-mono-data text-gold font-bold">₹{analysis?.target?.toFixed(1) || "..."}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs p-2 rounded bg-loss/5 border border-loss/10">
                   <span className="text-loss font-medium">Auto Stop-Loss</span>
-                  <span className="font-mono-data text-loss font-bold">₹{analysis?.stop_loss.toFixed(1) || "..."}</span>
+                  <span className="font-mono-data text-loss font-bold">₹{analysis?.stop_loss?.toFixed(1) || "..."}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs p-2 rounded hover:bg-white/5 transition-colors">
                   <span className="text-muted-foreground">Risk/Reward Est.</span>
@@ -253,13 +303,23 @@ const ChartIntelligence = () => {
               </div>
             </div>
             
-            <button className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg gradient-crimson-gold text-foreground text-xs font-bold glow-crimson hover:opacity-90 transition-opacity shadow-lg">
+            <button 
+              onClick={handleExecuteTrade}
+              className={`w-full mt-4 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg gradient-crimson-gold text-foreground text-xs font-bold glow-crimson transition-opacity shadow-lg ${!analysis ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'}`}
+              disabled={!analysis}
+            >
               <Zap className="w-4 h-4" />
               Execute Trade Plan
             </button>
           </div>
         </div>
       </div>
+
+      <TradePlanModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        data={signalData}
+      />
     </AppLayout>
   );
 };

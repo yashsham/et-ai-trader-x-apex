@@ -14,11 +14,11 @@ const Dashboard = () => {
   return (
     <AppLayout>
       <div className="space-y-10 animate-fade-in max-w-7xl mx-auto">
+        <AIDecisionStrip />
         <div className="flex items-center gap-2 mb-2 group">
           <span className="demo-step-badge animate-pulse">Phase 1</span>
           <span className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] group-hover:text-gold transition-colors">ET AI Trader X: Live Stream</span>
         </div>
-        <AIDecisionStrip />
         
         <section className="space-y-12 mb-16 relative">
           <div className="absolute -left-8 top-0 hidden xl:block">

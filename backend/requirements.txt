@@ -8,10 +8,11 @@ python-dotenv
 pydantic
 pydantic-settings
 requests
-scikit-learn
 supabase
+pytz
+redis
 
-# LLM providers (auto-switching — add whichever you have a key for)
+# LLM providers
 langchain-openai
 langchain-google-genai
 langchain-groq
@@ -19,6 +20,8 @@ langchain-huggingface
 
 # Agent Chat & RAG
 llama-index
+llama-index-llms-openai
 llama-index-llms-groq
+llama-index-embeddings-openai
 llama-index-embeddings-huggingface
 crewai-tools

@@ -69,7 +69,7 @@ export function AIAssistantSidebar({ isOpen, onClose }: AIAssistantSidebarProps)
       
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === loadingMsgId ? { ...m, content: data.response || "No response received." } : m
+          m.id === loadingMsgId ? { ...m, content: data.data?.response || "No response received." } : m
         )
       );
     } catch (error) {

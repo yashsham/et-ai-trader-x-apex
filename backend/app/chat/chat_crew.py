@@ -1,64 +1,90 @@
-from crewai import Agent, Task, Crew, Process
+from crewai import Crew, Process, Task
+from app.agents.trading_agents import TradingAgents
 from app.chat.tools import financial_data_tool, news_data_tool, rag_tool
-from app.agents.trading_agents import _get_llm
+from app.core.response_normalizer import response_normalizer
+import json
 
 class ChatbotCrew:
-    def __init__(self, query: str):
+    def __init__(self, query: str, context: dict = {}):
         self.query = query
-        self.llm = _get_llm()
+        self.context = context
+        self.agents = TradingAgents()
 
-    def run(self) -> str:
-        # Define Agents
-        researcher = Agent(
-            role="Financial Market Researcher",
-            goal="Extract mentions of stock symbols from the user query and gather live financial data, news, and RAG context.",
-            backstory="An expert financial analyst with access to real-time market data and historical trading knowledge.",
-            verbose=True,
-            allow_delegation=False,
-            tools=[financial_data_tool, news_data_tool, rag_tool],
-            llm=self.llm
+    def run(self):
+        # 1. Specialized Agents
+        router = self.agents.query_router_agent()
+        researcher = self.agents.data_agent() # Reusing existing data agent
+        catalyst_hacker = self.agents.catalyst_agent() # For news/sentiment
+        retriever = self.agents.explanation_agent() # Using educator for RAG synthesis
+        compliance_guard = self.agents.compliance_agent()
+        answer_expert = self.agents.answer_agent()
+
+        # 2. Sequential Task Flow
+        
+        # Task 1: Query Routing
+        route_task = Task(
+            description=(
+                f"Analyze the user query: '{self.query}'. "
+                "Classify it as 'STOCK_RESEARCH', 'MARKET_NEWS', 'TRADING_CONCEPT', or 'PORTFOLIO_ADVICE'."
+            ),
+            expected_output="A single category label and a list of identified ticker symbols.",
+            agent=router
         )
 
-        advisor = Agent(
-            role="AI Trading Assistant",
-            goal="Provide a concise, highly accurate, and engaging response to the user query based on the researcher's findings.",
-            backstory="A seasoned trading advisor who communicates clearly, incorporating risk management and market trends.",
-            verbose=True,
-            allow_delegation=False,
-            llm=self.llm
-        )
-
-        # Define Tasks
+        # Task 2: Data Gathering (Conditional in logic, but sequential in Crew)
         research_task = Task(
             description=(
-                f"Analyze this query: '{self.query}'. "
-                "If it mentions a stock, fetch its live data using 'Financial Data Tool' and news using 'News Data Tool'. "
-                "If the query is about general trading principles or strategies, query the RAG knowledge base using 'Trading Knowledge RAG Tool'."
+                "If the query involves stocks, fetch live metrics and prices. "
+                "If it involves news, gather recent headlines and sentiment."
             ),
-            expected_output="A summary of facts, numbers, and news or principles relevant to the user's query.",
-            agent=researcher
+            expected_output="A consolidated fact sheet of live market numbers and news.",
+            agent=researcher,
+            tools=[financial_data_tool, news_data_tool]
         )
 
-        respond_task = Task(
+        # Task 3: RAG Retrieval
+        rag_task = Task(
             description=(
-                "Take the researcher's summary and formulate a direct answer to the user's original query. "
-                "Format the response beautifully with markdown if needed. Be concise, actionable, and professional."
+                f"Search the internal knowledge base for any principles or past context related to: '{self.query}'. "
+                "Look for 'ET AI Trader' specific strategies or general market wisdom."
             ),
-            expected_output="A helpful, professional response to the user.",
-            agent=advisor
+            expected_output="Relevant snippets and principles from the RAG knowledge base.",
+            agent=retriever,
+            tools=[rag_tool]
         )
 
-        # Assemble Crew
+        # Task 4: Compliance Review
+        compliance_task = Task(
+            description=(
+                "Review the gathered data and RAG context. Ensure no definitive 'Buy/Sell' promises are made "
+                "without mentioning risk. Filter out any potential hallucinations."
+            ),
+            expected_output="A 'Safety Approved' version of the context with mandatory risk disclosures.",
+            agent=compliance_guard
+        )
+
+        # Task 5: Final Answer Formulation
+        answer_task = Task(
+            description=(
+                "Synthesize everything into a helpful, empathetic, and professional response. "
+                "Use the 'Professional Financial Communicator' persona. If symbols are mentioned, "
+                "provide a clear consensus summary."
+            ),
+            expected_output="A beautifully formatted markdown response with citations.",
+            agent=answer_expert
+        )
+
+        # 3. Kickoff
         crew = Crew(
-            agents=[researcher, advisor],
-            tasks=[research_task, respond_task],
+            agents=[router, researcher, retriever, compliance_guard, answer_expert],
+            tasks=[route_task, research_task, rag_task, compliance_task, answer_task],
             process=Process.sequential,
             verbose=True
         )
 
-        try:
-            result = crew.kickoff()
-            return str(result)
-        except Exception as e:
-            print("CrewAI execution failed:", e)
-            return f"I encountered an error while processing your request: {str(e)}"
+        result = crew.kickoff()
+        raw_result = str(result)
+        
+        # Normalize/Normalize for API
+        normalized = response_normalizer.normalize(raw_result, source="AICopilot")
+        return normalized.model_dump()

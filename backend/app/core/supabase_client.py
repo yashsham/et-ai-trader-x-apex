@@ -1,33 +1,25 @@
 """
-Supabase Client — singleton initialisation.
-Returns None gracefully if env vars are not set,
-so the app keeps running even without DB configured.
+Supabase Client singleton.
+Now uses the central 'settings' object for validated credentials.
 """
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
+from app.core.config import settings
 
 _client = None
-
 
 def get_supabase():
     global _client
     if _client is not None:
         return _client
 
-    url = os.getenv("SUPABASE_URL")
-    key = os.getenv("SUPABASE_KEY")
-
-    if not url or not key:
-        print("[Supabase] SUPABASE_URL / SUPABASE_KEY not set — running without DB.")
+    if not settings or not settings.SUPABASE_URL or not settings.SUPABASE_ANON_KEY:
+        print("[Supabase] SUPABASE_URL / SUPABASE_ANON_KEY not configured.")
         return None
 
     try:
         from supabase import create_client
-        _client = create_client(url, key)
-        print("[Supabase] Connected successfully.")
+        _client = create_client(settings.SUPABASE_URL, settings.SUPABASE_ANON_KEY)
+        print("✅ [Supabase] Client initialized successfully.")
         return _client
     except Exception as e:
-        print(f"[Supabase] Failed to connect: {e}")
+        print(f"❌ [Supabase] Connection failed: {e}")
         return None

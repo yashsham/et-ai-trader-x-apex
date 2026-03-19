@@ -13,6 +13,10 @@ export interface SignalData {
   volume: string;
   risk: "Low" | "Medium" | "High";
   explanation: string;
+  target?: string;
+  stopLoss?: string;
+  entryZone?: string;
+  date?: string;
 }
 
 const signalConfig: Record<string, { color: string; bg: string; border: string; glow: string }> = {

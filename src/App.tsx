@@ -10,6 +10,7 @@ import PortfolioBrain from "./pages/PortfolioBrain.tsx";
 import AIAssistant from "./pages/AIAssistant.tsx";
 import AIVideoEngine from "./pages/AIVideoEngine.tsx";
 import MarketNews from "./pages/MarketNews.tsx";
+import SignalHistory from "./pages/SignalHistory.tsx";
 import Settings from "./pages/Settings.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -24,6 +25,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/radar" element={<OpportunityRadar />} />
+          <Route path="/history" element={<SignalHistory />} />
           <Route path="/charts" element={<ChartIntelligence />} />
           <Route path="/portfolio" element={<PortfolioBrain />} />
           <Route path="/assistant" element={<AIAssistant />} />

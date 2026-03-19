@@ -10,6 +10,7 @@ interface NewsItem {
   impact: string;
   summary: string;
   sector: string;
+  url: string;
 }
 
 const impactColors: Record<string, string> = {
@@ -61,7 +62,13 @@ const MarketNews = () => {
               </div>
             )}
             {news.map((item) => (
-              <div key={item.id} className="ai-card p-5 group cursor-pointer">
+              <a
+                key={item.id}
+                href={item.url && item.url !== '#' ? item.url : undefined}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ai-card p-5 group cursor-pointer block no-underline"
+              >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -93,7 +100,7 @@ const MarketNews = () => {
 
                   <ArrowUpRight className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors shrink-0 mt-1" />
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         )}

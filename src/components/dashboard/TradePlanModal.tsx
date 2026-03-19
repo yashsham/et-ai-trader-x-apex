@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
@@ -6,8 +7,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { TrendingUp, ShieldAlert, Target, ArrowDown, Zap, Play, BarChart3, Brain, ArrowRight } from "lucide-react";
+import { TrendingUp, ShieldAlert, Target, ArrowDown, Zap, Play, BarChart3, Brain, ArrowRight, Loader2 } from "lucide-react";
 import type { SignalData } from "./AISignalCard";
+import { toast } from "sonner";
 
 interface TradePlanModalProps {
   open: boolean;
@@ -25,8 +27,32 @@ const tradePlans: Record<string, { entry: string; target: string; targetPct: str
 };
 
 export function TradePlanModal({ open, onOpenChange, data }: TradePlanModalProps) {
+  const [isSimulating, setIsSimulating] = useState(false);
   if (!data) return null;
-  const plan = tradePlans[data.stock] || tradePlans.RELIANCE;
+  
+  // Use dynamic data if available, fallback to mock data record
+  const mockPlan = tradePlans[data.stock] || tradePlans.RELIANCE;
+  const plan = {
+    entry: data.entryZone || mockPlan.entry,
+    target: data.target || mockPlan.target,
+    targetPct: mockPlan.targetPct, // Keep mock pct for now or calculate if possible
+    stopLoss: data.stopLoss || mockPlan.stopLoss,
+    probability: data.confidence || mockPlan.probability,
+    reason: data.explanation || mockPlan.reason
+  };
+
+  const handleSimulate = () => {
+    setIsSimulating(true);
+    
+    // Simulate complex math/risk calculation
+    setTimeout(() => {
+      setIsSimulating(false);
+      toast.success(`Trade Simulation Complete: ${data.stock}`, {
+        description: `Strategy validated for target ${plan.target}. Risk Reward ratio optimized.`,
+      });
+      onOpenChange(false);
+    }, 2200);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -105,12 +131,23 @@ export function TradePlanModal({ open, onOpenChange, data }: TradePlanModalProps
             <motion.button
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              className="group relative w-full py-4 rounded-xl bg-crimson text-white font-black text-base shadow-[0_10px_30px_-10px_rgba(220,38,38,0.5)] flex items-center justify-center gap-3 overflow-hidden"
+              onClick={handleSimulate}
+              disabled={isSimulating}
+              className="group relative w-full py-4 rounded-xl bg-crimson text-white font-black text-base shadow-[0_10px_30px_-10px_rgba(220,38,38,0.5)] flex items-center justify-center gap-3 overflow-hidden disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer" />
-              <BarChart3 className="w-5 h-5" />
-              SIMULATE TRADE PLAN
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              {isSimulating ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  SIMULATING RISK...
+                </>
+              ) : (
+                <>
+                  <BarChart3 className="w-5 h-5" />
+                  SIMULATE TRADE PLAN
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.02 }}

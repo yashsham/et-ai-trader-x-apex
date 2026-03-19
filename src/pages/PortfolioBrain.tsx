@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { AlertTriangle, Shield, TrendingUp, Zap, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 interface PortfolioData {
   holdings: Array<{
@@ -27,23 +29,52 @@ interface PortfolioData {
 const PortfolioBrain = () => {
   const [data, setData] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+
+  const loadPortfolio = useCallback(async (isAnalysis = false) => {
+    if (isAnalysis) setIsOptimizing(true);
+    else setLoading(true);
+
+    try {
+      const endpoint = isAnalysis 
+        ? "http://localhost:8000/api/v1/portfolio/analysis" 
+        : "http://localhost:8000/api/v1/portfolio";
+        
+      const res = await fetch(endpoint);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setData(json.data);
+        if (isAnalysis) toast.success("AI Portfolio Optimization Complete");
+      }
+    } catch (err) {
+      console.error("Failed to load portfolio", err);
+      toast.error("Failed to sync portfolio data");
+    } finally {
+      setLoading(false);
+      setIsOptimizing(false);
+    }
+  }, []);
 
   useEffect(() => {
-    async function loadPortfolio() {
-      try {
-        const res = await fetch("http://localhost:8000/api/v1/portfolio");
-        const json = await res.json();
-        if (json.success && json.data) {
-          setData(json.data);
-        }
-      } catch (err) {
-        console.error("Failed to load portfolio", err);
-      } finally {
-        setLoading(false);
-      }
-    }
     loadPortfolio();
-  }, []);
+
+    // Realtime listener for portfolio changes
+    const channel = supabase
+      .channel('portfolio-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'portfolio_holdings' },
+        (payload) => {
+          console.log('Portfolio change detected:', payload);
+          loadPortfolio(); // Refetch basic summary immediately
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadPortfolio]);
 
   // Pie chart calculation
   let cumAngle = 0;
@@ -68,9 +99,17 @@ const PortfolioBrain = () => {
               Live AI-powered portfolio analysis & optimization
             </p>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg gradient-crimson-gold text-foreground text-xs font-semibold glow-crimson hover:opacity-90 transition-opacity">
-            <Zap className="w-3.5 h-3.5" />
-            Optimize Portfolio
+          <button 
+            onClick={() => loadPortfolio(true)}
+            disabled={isOptimizing}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg gradient-crimson-gold text-foreground text-xs font-semibold glow-crimson transition-all ${isOptimizing ? "opacity-50 cursor-not-allowed" : "hover:opacity-90 shadow-[0_0_20px_-5px_var(--gold)]"}`}
+          >
+            {isOptimizing ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Zap className="w-3.5 h-3.5" />
+            )}
+            {isOptimizing ? "AI Optimization in Progress..." : "Optimize Portfolio"}
           </button>
         </div>
 

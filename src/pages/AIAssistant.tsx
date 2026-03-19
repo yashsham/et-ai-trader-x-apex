@@ -1,6 +1,7 @@
 import { AppLayout } from "@/components/AppLayout";
 import { useState, useRef, useEffect } from "react";
 import { Send, Zap, TrendingUp, BarChart3, Brain, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const suggestedPrompts = [
   "Should I buy RELIANCE now?",
@@ -52,29 +53,58 @@ const AIAssistant = () => {
       {
         id: loadingMsgId,
         role: "ai",
-        content: "Analyzing your query with CrewAI agents... I'll provide a detailed response shortly.",
+        content: "",
       },
     ]);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/v1/chat", {
+      const response = await fetch("http://localhost:8000/api/v1/chat/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: text }),
       });
-      const data = await res.json();
-      
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === loadingMsgId ? { ...m, content: data.response || "No response received." } : m
-        )
-      );
+
+      if (!response.body) throw new Error("No response body");
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedContent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const dataStr = line.slice(6).trim();
+            if (dataStr === "[DONE]") break;
+
+            try {
+              const data = JSON.parse(dataStr);
+              if (data.token) {
+                accumulatedContent += data.token;
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === loadingMsgId ? { ...m, content: accumulatedContent } : m
+                  )
+                );
+              }
+            } catch (e) {
+              console.error("Error parsing SSE chunk:", e);
+            }
+          }
+        }
+      }
     } catch (error) {
+      console.error("Chat streaming error:", error);
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === loadingMsgId ? { ...m, content: `Connection error: ${error}` } : m
+          m.id === loadingMsgId ? { ...m, content: `Error: ${error}` } : m
         )
       );
+      toast.error("Assistant disconnected");
     } finally {
       setIsLoading(false);
     }
