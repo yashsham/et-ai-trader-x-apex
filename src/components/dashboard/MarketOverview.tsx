@@ -17,7 +17,7 @@ export function MarketOverview() {
     async function fetchData() {
       try {
         // Use relative URL assuming proxy, or hardcode localhost for dev
-        const res = await fetch("http://localhost:8000/api/v1/market/overview");
+        const res = await fetch("/api/v1/market/overview");
         const json = await res.json();
         if (json.success && json.data) {
           setData(json.data);

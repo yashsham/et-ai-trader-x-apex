@@ -4,6 +4,7 @@ import { AlertTriangle, Shield, TrendingUp, Zap, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PortfolioData {
   holdings: Array<{
@@ -29,6 +30,7 @@ interface PortfolioData {
 
 const PortfolioBrain = () => {
   const { user, loading: authLoading } = useAuth();
+  const { language } = useLanguage();
   const [data, setData] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -41,10 +43,15 @@ const PortfolioBrain = () => {
     
     try {
       const baseUrl = isAnalysis 
-        ? "http://localhost:8000/api/v1/portfolio/analysis" 
-        : "http://localhost:8000/api/v1/portfolio";
+        ? "/api/v1/portfolio/analysis" 
+        : "/api/v1/portfolio";
+
+      const qParams = new URLSearchParams({ 
+        user_id: user.id,
+        language: language 
+      }).toString();
         
-      const res = await fetch(`${baseUrl}?user_id=${user.id}`);
+      const res = await fetch(`${baseUrl}?${qParams}`);
       const json = await res.json();
       if (json.success && json.data) {
         setData(json.data);

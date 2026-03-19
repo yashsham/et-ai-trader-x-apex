@@ -21,7 +21,7 @@ export function TopMovers() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch("http://localhost:8000/api/v1/market/movers");
+        const res = await fetch("/api/v1/market/movers");
         const json = await res.json();
         if (json.success && json.data) {
           setData(json.data);

@@ -11,7 +11,7 @@ export function AIDecisionStrip() {
   useEffect(() => {
     async function checkTodayOpportunities() {
       try {
-        const response = await fetch("http://localhost:8000/api/v1/history/daily?decision=BUY");
+        const response = await fetch("/api/v1/history/daily?decision=BUY");
         const data = await response.json();
         if (data.status === "success") {
           setBuyCount(data.data.count);

@@ -9,7 +9,7 @@ export function SentimentGauge() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch("http://localhost:8000/api/v1/market/sentiment");
+        const res = await fetch("/api/v1/market/sentiment");
         const json = await res.json();
         if (json.success && json.data) {
           setSentiment(json.data.score);

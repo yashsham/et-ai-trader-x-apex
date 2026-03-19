@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Zap, 
@@ -38,6 +39,7 @@ const scanMessages = [
 ];
 
 export function AutoAnalyzeEngine() {
+  const { language } = useLanguage();
   const [targetSymbol, setTargetSymbol] = useState("RELIANCE.NS");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
@@ -101,14 +103,14 @@ export function AutoAnalyzeEngine() {
         if (currentStep === logs.length - 1) {
           try {
             // Trigger Real Backend Analysis
-            const response = await fetch("http://localhost:8000/api/v1/analyze-stock", {
+            const response = await fetch("/api/v1/analyze-stock", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ symbol: targetSymbol, portfolio: {} })
+              body: JSON.stringify({ symbol: targetSymbol, portfolio: {}, language: language })
             });
             const raw = await response.json();
             console.log("AI Decision Raw:", raw);
-            
+
             // 1. Unpack the payload (StandardResponse.data or raw)
             const payload = raw.data || raw;
             
@@ -392,7 +394,6 @@ export function AutoAnalyzeEngine() {
                   </div>
                 </motion.div>
               ))}
-              <div ref={(el) => el?.scrollIntoView({ behavior: 'smooth' })} />
             </div>
           </motion.div>
         ) : isRevealing ? (

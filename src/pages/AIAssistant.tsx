@@ -4,6 +4,7 @@ import { Send, Zap, TrendingUp, BarChart3, Brain, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const suggestedPrompts = [
   "Should I buy RELIANCE now?",
@@ -30,6 +31,7 @@ const initialMessages: Message[] = [
 
 const AIAssistant = () => {
   const { user } = useAuth();
+  const { language } = useLanguage();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -61,10 +63,10 @@ const AIAssistant = () => {
     ]);
 
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/chat/stream?user_id=${user?.id}`, {
+      const response = await fetch(`/api/v1/chat/stream?user_id=${user?.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: text }),
+        body: JSON.stringify({ query: text, language: language }),
       });
 
       if (!response.body) throw new Error("No response body");

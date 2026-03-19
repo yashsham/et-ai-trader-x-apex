@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Bell, User, TrendingUp, LogOut, Settings as SettingsIcon, ChevronDown, Loader2 } from "lucide-react";
+import { Search, Bell, User, TrendingUp, LogOut, Settings as SettingsIcon, ChevronDown, Loader2, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage, Language } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 
 export function TopNavbar() {
   const { user, signOut } = useAuth();
+  const { language, setLanguage, languageLabel } = useLanguage();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [marketStatus, setMarketStatus] = useState<{ is_open: boolean; status: string }>({ is_open: false, status: "CLOSED" });
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -20,7 +23,7 @@ export function TopNavbar() {
   useEffect(() => {
     const fetchMarketStatus = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/v1/market/status");
+        const res = await fetch("/api/v1/market/status");
         const json = await res.json();
         if (json.success) setMarketStatus(json.data);
       } catch (err) {
@@ -38,7 +41,7 @@ export function TopNavbar() {
     if (!user) return;
     const fetchNotifications = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/v1/notifications?user_id=${user.id}`);
+        const res = await fetch(`/api/v1/notifications?user_id=${user.id}`);
         const json = await res.json();
         if (json.success) setNotifications(json.data);
       } catch (err) {
@@ -50,7 +53,7 @@ export function TopNavbar() {
 
   const markRead = async (id: string) => {
     try {
-      await fetch(`http://localhost:8000/api/v1/notifications/${id}/read`, { method: "POST" });
+      await fetch(`/api/v1/notifications/${id}/read`, { method: "POST" });
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
     } catch (err) {}
   };
@@ -67,7 +70,7 @@ export function TopNavbar() {
     setIsSearching(true);
     searchTimeout.current = setTimeout(async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/v1/search/stocks?q=${searchQuery}`);
+        const res = await fetch(`/api/v1/search/stocks?q=${searchQuery}`);
         const json = await res.json();
         if (json.success) setSearchResults(json.data);
       } catch (err) {}
@@ -168,6 +171,42 @@ export function TopNavbar() {
                     </div>
                   ))
                 )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Language Selector */}
+        <div className="relative">
+          <button 
+            onClick={() => setLangMenuOpen(!langMenuOpen)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all border ${langMenuOpen ? 'bg-accent border-gold/30 text-white' : 'text-muted-foreground border-white/5 hover:bg-white/5'}`}
+          >
+            <Globe className="w-4 h-4 text-gold" />
+            <span className="text-[11px] font-bold">{languageLabel}</span>
+            <ChevronDown className={`w-3 h-3 transition-transform ${langMenuOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {langMenuOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-card border border-white/10 rounded-xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in duration-200">
+              <div className="px-3 py-2 border-b border-white/5 mb-1 bg-white/[0.02] rounded-t-lg">
+                <p className="text-[9px] font-black text-gold uppercase tracking-widest">Select Language</p>
+              </div>
+              <div className="grid grid-cols-1 gap-1">
+                {(['English', 'Hindi', 'Gujarati', 'Marathi', 'Bengali', 'Kannada', 'Tamil', 'Telugu'] as Language[]).map((lang) => (
+                  <button
+                    key={lang}
+                    onClick={() => {
+                      setLanguage(lang);
+                      setLangMenuOpen(false);
+                      toast.success(`Language changed to ${lang}`);
+                    }}
+                    className={`flex items-center justify-between px-3 py-2 text-xs rounded-lg transition-all ${language === lang ? 'bg-gold/10 text-gold font-bold' : 'text-muted-foreground hover:bg-white/5 hover:text-white'}`}
+                  >
+                    <span>{lang}</span>
+                    {language === lang && <div className="w-1.5 h-1.5 rounded-full bg-gold shadow-[0_0_8px_rgba(255,184,0,0.5)]" />}
+                  </button>
+                ))}
               </div>
             </div>
           )}

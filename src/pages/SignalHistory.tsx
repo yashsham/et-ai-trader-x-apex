@@ -25,7 +25,7 @@ const SignalHistory = () => {
   useEffect(() => {
     async function fetchHistory() {
       try {
-        const response = await fetch("http://localhost:8000/api/v1/history?limit=50");
+        const response = await fetch("/api/v1/history?limit=50");
         const data = await response.json();
         
         if (data.status === "success") {
