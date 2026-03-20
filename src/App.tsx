@@ -58,6 +58,11 @@ const App = () => (
               <Route path="/video" element={<ProtectedRoute><AIVideoEngine /></ProtectedRoute>} />
               <Route path="/news" element={<ProtectedRoute><MarketNews /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              
+              {/* Supabase Auth Redirect Handlers for HashRouter */}
+              <Route path="/access_token*" element={<Navigate to="/" replace />} />
+              <Route path="/error*" element={<Navigate to="/login" replace />} />
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </HashRouter>

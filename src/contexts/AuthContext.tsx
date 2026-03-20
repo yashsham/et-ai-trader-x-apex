@@ -22,6 +22,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check for errors in the URL query parameters (commonly from OAuth failures)
+    const queryParams = new URLSearchParams(window.location.search);
+    const error = queryParams.get('error');
+    const errorCode = queryParams.get('error_code');
+    const errorDescription = queryParams.get('error_description');
+
+    if (error || errorCode) {
+      import('sonner').then(({ toast }) => {
+        toast.error(`${errorDescription || errorCode || "Authentication error"}`);
+      });
+      // Clear the query params from the URL to avoid repeated alerts
+      const cleanUrl = window.location.origin + window.location.pathname + window.location.hash;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+
     // Check active sessions and sets the user
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
