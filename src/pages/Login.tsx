@@ -56,7 +56,7 @@ const Login = () => {
         {/* Logo Section */}
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-black/40 border border-white/10 mb-4 shadow-[0_0_30px_-5px_var(--crimson)] overflow-hidden p-1">
-            <img src="/logo.png" alt="Logo" className="w-full h-full object-cover rounded-xl" />
+            <img src="logo.png" alt="Logo" className="w-full h-full object-cover rounded-xl" />
           </div>
           <h1 className="text-3xl font-display font-bold text-foreground mb-2 flex items-center justify-center gap-2">
             ET <span className="text-gold">AI</span> Trader <span className="text-crimson text-sm">X</span>

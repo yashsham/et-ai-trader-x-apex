@@ -44,7 +44,7 @@ export function AppSidebar({
     >
       <div className="h-16 flex items-center px-4 border-b border-white/[0.05]">
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="Logo" className="w-8 h-8 rounded-lg object-cover shadow-[0_0_15px_-3px_var(--gold)]" />
+          <img src="logo.png" alt="Logo" className="w-8 h-8 rounded-lg object-cover shadow-[0_0_15px_-3px_var(--gold)]" />
           {!collapsed && (
             <div className="font-display flex flex-col">
               <span className="text-xs font-black text-foreground tracking-tighter uppercase opacity-80">ET AI</span>
