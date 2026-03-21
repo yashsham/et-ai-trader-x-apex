@@ -158,11 +158,34 @@ class ChatService:
                 await asyncio.sleep(0.04)
 
         except Exception as e:
-            msg = f"Error during analysis: {str(e)}"
-            print(f"[ChatService] ERROR: {msg}")
+            error_str = str(e).lower()
+            
+            # Classify error for user-friendly messaging
+            if "429" in error_str or "resource_exhausted" in error_str or "quota" in error_str or "rate_limit" in error_str:
+                # Quota/rate-limit — all models tried
+                user_msg = (
+                    "⚠️ Our AI engines are running at full capacity right now. "
+                    "The system automatically tried all available models. "
+                    "Please wait 60 seconds and try again — responses will resume automatically."
+                )
+            elif "timeout" in error_str or "timed out" in error_str:
+                user_msg = (
+                    "⏱️ The AI analysis is taking longer than expected. "
+                    "Please retry your query — I'll get a faster response next time."
+                )
+            elif "api_key" in error_str or "authentication" in error_str or "unauthorized" in error_str:
+                user_msg = "🔑 AI engine authentication issue. Please contact support."
+            else:
+                user_msg = (
+                    "🔄 Analysis encountered a technical hiccup. "
+                    "Please rephrase your query or try again in a moment."
+                )
+            
+            print(f"[ChatService] ERROR (classified): {str(e)[:200]}")
+            
             if language != "English":
-                msg = translation_service.translate(msg, language)
-            yield f"data: {json.dumps({'token': msg})}\n\n"
+                user_msg = translation_service.translate(user_msg, language)
+            yield f"data: {json.dumps({'token': user_msg})}\n\n"
 
         yield "data: [DONE]\n\n"
 

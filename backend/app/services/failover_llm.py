@@ -57,29 +57,39 @@ class FailoverLLM:
         for i, llm in enumerate(self.all_llms):
             # Check circuit breaker
             if self._is_broken(llm.model):
-                print(f"[FailoverLLM] [Skip] {llm.model} is currently in cooling down phase.")
+                print(f"[FailoverLLM] [Skip] {llm.model} is in cooling down phase.")
                 continue
 
             try:
                 print(f"[FailoverLLM] [Attempt {i+1}] Trying {llm.model}...")
                 res = llm.call(*args, **kwargs)
                 self._record_success(llm.model)
+                print(f"[FailoverLLM] [Success] {llm.model}")
                 return res
                 
             except Exception as e:
                 last_error = e
-                self._record_failure(llm.model)
-                error_msg = str(e).lower()
-                print(f"[FailoverLLM] [Failure] {llm.model}: {error_msg[:100]}")
+                error_str = str(e).lower()
+                print(f"[FailoverLLM] [Failure] {llm.model}: {error_str[:150]}")
+                
+                # IMMEDIATE circuit break for quota/rate-limit — no point retrying
+                if any(k in error_str for k in ["429", "quota", "resource_exhausted", "rate_limit", "rate limit"]):
+                    logger.warning(f"[FailoverLLM] INSTANT OPEN circuit for {llm.model} (quota exhausted). Forcing failover.")
+                    # Directly open the circuit breaker by recording max_failures
+                    self._circuit_breakers[llm.model] = (self.max_failures, time.time())
+                else:
+                    self._record_failure(llm.model)
                 
                 if i < len(self.all_llms) - 1:
+                    next_model = self.all_llms[i + 1].model
+                    print(f"[FailoverLLM] Failing over to: {next_model}")
                     continue
                 else:
                     raise e
         
         if last_error:
             raise last_error
-        raise Exception("All LLMs skipped or failed.")
+        raise Exception("All LLMs skipped or failed — check API keys and quotas.")
 
     # Delegate other attributes to the primary LLM
     def __getattr__(self, name):

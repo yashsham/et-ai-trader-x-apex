@@ -12,64 +12,69 @@ class LLMRouter:
     def get_router(self):
         """
         Dynamically builds a FailoverLLM chain based on available keys.
-        Priority: Groq > Gemini > OpenAI
+        Priority: Groq (primary) > Gemini > OpenRouter > OpenAI
+        Groq is fastest and has the most generous free tier — always primary.
         """
         available_llms = []
 
-        # 1. Gemini - Primary Powerhouse (discovery showed 2.x and 3.x models)
-        if self.settings.GEMINI_API_KEY:
-             for g_model in ["gemini/gemini-2.0-flash", "gemini/gemini-3-flash-preview", "gemini/gemini-1.5-pro"]:
-                 available_llms.append(LLM(
-                     model=g_model,
-                     api_key=self.settings.GEMINI_API_KEY,
-                     temperature=0.1
-                 ))
-
-        # 2. Groq - High reliability, high speed fallback
+        # 1. Groq — PRIMARY: Fastest, most generous free tier, zero quota issues
         if self.settings.GROQ_API_KEY:
-             available_llms.append(LLM(
-                 model="groq/llama-3.3-70b-versatile",
-                 api_key=self.settings.GROQ_API_KEY,
-                 temperature=0.1,
-                 timeout=30
-             ))
+            available_llms.append(LLM(
+                model="groq/llama-3.3-70b-versatile",
+                api_key=self.settings.GROQ_API_KEY,
+                temperature=0.1,
+                timeout=30
+            ))
+            # Secondary Groq model for fallback within Groq
+            available_llms.append(LLM(
+                model="groq/llama-3.1-70b-versatile",
+                api_key=self.settings.GROQ_API_KEY,
+                temperature=0.1,
+                timeout=30
+            ))
 
-        # 3. OpenRouter Free - High Capacity Fallback (120B / 20B MoE)
+        # 2. Gemini — SECONDARY: Powerful but strict free-tier quotas
+        if self.settings.GEMINI_API_KEY:
+            available_llms.append(LLM(
+                model="gemini/gemini-2.0-flash",
+                api_key=self.settings.GEMINI_API_KEY,
+                temperature=0.1
+            ))
+            available_llms.append(LLM(
+                model="gemini/gemini-1.5-flash",
+                api_key=self.settings.GEMINI_API_KEY,
+                temperature=0.1
+            ))
+
+        # 3. OpenRouter Free — High Capacity Fallback (120B / 70B)
         if self.settings.OPENROUTER_API_KEY:
-             for or_model in ["openai/gpt-oss-120b:free", "openai/gpt-oss-20b:free", "meta-llama/llama-3.3-70b-instruct:free"]:
-                 available_llms.append(LLM(
-                     model=or_model,
-                     api_key=self.settings.OPENROUTER_API_KEY,
-                     temperature=0.1,
-                     base_url="https://openrouter.ai/api/v1"
-                 ))
+            for or_model in [
+                "meta-llama/llama-3.3-70b-instruct:free",
+                "microsoft/phi-4-reasoning:free",
+                "google/gemini-2.0-flash-exp:free"
+            ]:
+                available_llms.append(LLM(
+                    model=or_model,
+                    api_key=self.settings.OPENROUTER_API_KEY,
+                    temperature=0.1,
+                    base_url="https://openrouter.ai/api/v1"
+                ))
 
-        # 4. OpenAI - Robust secondary backup
+        # 4. OpenAI — Robust paid backup
         if self.settings.OPENAI_API_KEY:
-             available_llms.append(LLM(
-                 model="openai/gpt-4o-mini",
-                 api_key=self.settings.OPENAI_API_KEY,
-                 temperature=0.1
-             ))
-
-        # 4. OpenRouter - The ultimate fallback (has many models)
-        if self.settings.OPENROUTER_API_KEY:
-             available_llms.append(LLM(
-                 model=self.settings.OPENROUTER_MODEL or "openai/gpt-4o-mini",
-                 api_key=self.settings.OPENROUTER_API_KEY,
-                 temperature=0.1,
-                 base_url="https://openrouter.ai/api/v1"
-             ))
+            available_llms.append(LLM(
+                model="openai/gpt-4o-mini",
+                api_key=self.settings.OPENAI_API_KEY,
+                temperature=0.1
+            ))
 
         if not available_llms:
-             # If no keys, return a dummy that will fail gracefully or use local
-             logger.critical("[Router] No LLM keys found. AI features will fail.")
-             raise ValueError("CRITICAL: No LLM API keys configured.")
+            logger.critical("[Router] No LLM keys found. AI features will fail.")
+            raise ValueError("CRITICAL: No LLM API keys configured.")
 
-        # Return a FailoverLLM instance
-        return FailoverLLM(
-            primary=available_llms[0],
-            fallbacks=available_llms[1:]
-        )
+        primary = available_llms[0]
+        fallbacks = available_llms[1:]
+        logger.info(f"[Router] Primary: {primary.model} | Fallbacks: {len(fallbacks)}")
+        return FailoverLLM(primary=primary, fallbacks=fallbacks)
 
 llm_router = LLMRouter()
