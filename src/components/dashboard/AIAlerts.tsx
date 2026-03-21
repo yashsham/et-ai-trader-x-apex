@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { Zap, ArrowUpRight, Loader2 } from "lucide-react";
 import { getAllAnalyses, AnalysisResult } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function AIAlerts() {
+  const { t } = useLanguage();
   const [alerts, setAlerts] = useState<AnalysisResult[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -31,8 +33,8 @@ export function AIAlerts() {
     return (
       <div className="ai-card p-6 min-h-[300px] flex flex-col items-center justify-center text-center">
         <Zap className="w-8 h-8 text-muted-foreground/30 mb-2" />
-        <p className="text-sm text-muted-foreground">No recent AI alerts.</p>
-        <p className="text-xs text-muted-foreground/50">Run an analysis to generate alerts.</p>
+        <p className="text-sm text-muted-foreground">{t('no_alerts')}</p>
+        <p className="text-xs text-muted-foreground/50">{t('run_analysis_desc')}</p>
       </div>
     );
   }
@@ -40,9 +42,9 @@ export function AIAlerts() {
   return (
     <div className="ai-card p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-foreground">Live AI Alerts</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t('live_ai_alerts')}</h3>
         <span className="flex items-center gap-1 text-xs text-crimson">
-          <Zap className="w-3 h-3" /> Real-time
+          <Zap className="w-3 h-3" /> {t('real_time')}
         </span>
       </div>
 
@@ -69,7 +71,7 @@ export function AIAlerts() {
                   <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
                     isBuy ? "bg-profit/10 text-profit" : isSell ? "bg-loss/10 text-loss" : "bg-muted text-gold"
                   }`}>
-                    {alert.decision}
+                    {t(alert.decision.toLowerCase() as any)}
                   </span>
                 </div>
                 <span className="font-mono-data text-xs text-gold font-semibold">
@@ -79,7 +81,7 @@ export function AIAlerts() {
               <p className="text-xs text-muted-foreground line-clamp-2 mt-2">{alert.decision_output}</p>
               <div className="flex items-center justify-end mt-2">
                 <span className="text-[10px] text-crimson flex items-center gap-0.5 hover:underline">
-                  View full report <ArrowUpRight className="w-3 h-3" />
+                  {t('view_full_report')} <ArrowUpRight className="w-3 h-3" />
                 </span>
               </div>
             </div>

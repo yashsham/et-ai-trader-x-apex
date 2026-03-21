@@ -21,19 +21,18 @@ interface Message {
   analysis?: { risk: string; recommendation: string; target: string };
 }
 
-const initialMessages: Message[] = [
-  {
-    id: 1,
-    role: "ai",
-    content:
-      "Namaste! I'm your AI Trading Assistant. Ask me about any stock, market trend, or portfolio strategy. I analyze real-time data to give you actionable insights.",
-  },
-];
+import ReactMarkdown from 'react-markdown';
 
 const AIAssistant = () => {
   const { user } = useAuth();
-  const { language } = useLanguage();
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const { t, language } = useLanguage();
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 1,
+      role: "ai",
+      content: t('assistant_welcome'),
+    },
+  ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -125,7 +124,7 @@ const AIAssistant = () => {
             <Brain className="w-4 h-4 text-foreground" />
           </div>
           <div>
-            <h1 className="font-display text-lg font-bold text-foreground">AI Trading Assistant</h1>
+            <h1 className="font-display text-lg font-bold text-foreground">{t('assistant')}</h1>
             <p className="text-xs text-muted-foreground">Powered by ET AI Engine</p>
           </div>
         </div>
@@ -135,13 +134,24 @@ const AIAssistant = () => {
           {messages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
               <div
-                className={`max-w-[75%] p-4 rounded-xl text-sm leading-relaxed ${
+                className={`max-w-[85%] p-4 rounded-xl text-sm leading-relaxed ${
                   msg.role === "user"
                     ? "bg-crimson/20 text-foreground"
                     : "ai-card"
                 }`}
               >
-                <p className="text-foreground">{msg.content}</p>
+                {msg.role === "ai" ? (
+                  <div className="prose prose-invert prose-sm max-w-none text-foreground/90 leading-relaxed 
+                    prose-headings:text-gold prose-headings:font-display prose-headings:mb-2 prose-headings:mt-4
+                    prose-strong:text-gold prose-strong:font-bold
+                    prose-p:mb-2 prose-p:last:mb-0
+                    prose-li:my-0.5
+                    prose-hr:border-white/10 prose-hr:my-4">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="text-foreground">{msg.content}</p>
+                )}
                 {msg.analysis && (
                   <div className="mt-3 space-y-2 border-t border-white/[0.05] pt-3">
                     <div className="flex items-start gap-2">
@@ -192,7 +202,7 @@ const AIAssistant = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Ask about any stock, trend, or strategy..."
+            placeholder={t('assistant_placeholder')}
             className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none px-2"
             disabled={isLoading}
           />

@@ -1,6 +1,5 @@
 from crewai.tools import tool
 from app.services.market_service import market_service
-from app.chat.rag_engine import query_rag
 
 @tool("Financial Data Tool")
 def financial_data_tool(symbol: str) -> str:
@@ -29,8 +28,3 @@ def news_data_tool(symbol: str) -> str:
         return headlines
     except Exception as e:
         return f"Error fetching news for {symbol}: {str(e)}"
-
-@tool("Trading Knowledge RAG Tool")
-def rag_tool(query: str) -> str:
-    """Useful to query advanced trading principles, risk management strategies, and general market knowledge. Use this when the user asks a conceptual or strategic question without a specific stock context."""
-    return query_rag(query)

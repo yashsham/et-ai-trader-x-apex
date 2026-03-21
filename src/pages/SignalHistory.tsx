@@ -7,6 +7,7 @@ import { TradePlanModal } from "@/components/dashboard/TradePlanModal";
 import { AIDecisionStrip } from "@/components/dashboard/AIDecisionStrip";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface RawAnalysis {
   id: number;
@@ -17,6 +18,7 @@ interface RawAnalysis {
 }
 
 const SignalHistory = () => {
+  const { t } = useLanguage();
   const [signals, setSignals] = useState<SignalData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -101,10 +103,10 @@ const SignalHistory = () => {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <History className="w-5 h-5 text-gold" />
-              <h1 className="font-display text-2xl font-bold text-foreground">Intelligence Audit Log</h1>
+              <h1 className="font-display text-2xl font-bold text-foreground">{t('intelligence_audit_log')}</h1>
             </div>
             <p className="text-sm text-muted-foreground">
-              Review every AI-generated trade signal and historical performance
+              {t('audit_log_desc')}
             </p>
           </div>
 
@@ -113,7 +115,7 @@ const SignalHistory = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-gold transition-colors" />
               <input 
                 type="text" 
-                placeholder="Search symbol or signal..."
+                placeholder={t('search_placeholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="bg-accent/40 border border-white/5 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-gold/30 transition-all w-64"
@@ -129,15 +131,15 @@ const SignalHistory = () => {
         {loading ? (
           <div className="ai-card p-24 flex flex-col items-center justify-center min-h-[400px]">
             <Loader2 className="w-10 h-10 text-gold animate-spin mb-4" />
-            <p className="text-muted-foreground animate-pulse">Synchronizing Neural Archive...</p>
+            <p className="text-muted-foreground animate-pulse">{t('syncing_archive')}</p>
           </div>
         ) : filteredSignals.length === 0 ? (
           <div className="ai-card p-20 text-center border-dashed border-white/5">
             <div className="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center mx-auto mb-4">
               <History className="w-8 h-8 text-muted-foreground opacity-20" />
             </div>
-            <h3 className="text-lg font-bold text-foreground mb-1">No Signals Archived</h3>
-            <p className="text-sm text-muted-foreground">Signals from your scans will appear here automatically.</p>
+            <h3 className="text-lg font-bold text-foreground mb-1">{t('no_signals_archived')}</h3>
+            <p className="text-sm text-muted-foreground">{t('archive_desc')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4">
@@ -167,7 +169,7 @@ const SignalHistory = () => {
                   {/* Signal Status */}
                   <div className="flex items-center gap-6">
                     <div className="text-center">
-                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-0.5">Decision</span>
+                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-0.5">{t('decision')}</span>
                       <div className={`flex items-center gap-1 font-black text-sm ${
                         signal.signal === "BUY" ? "text-profit" : signal.signal === "SELL" ? "text-loss" : "text-gold"
                       }`}>
@@ -177,12 +179,12 @@ const SignalHistory = () => {
                     </div>
 
                     <div className="text-center">
-                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-0.5">Confidence</span>
+                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-0.5">{t('ai_confidence')}</span>
                       <span className="font-mono-data font-bold text-white">{signal.confidence}%</span>
                     </div>
 
                     <div className="text-center hidden sm:block">
-                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-0.5">Entry Zone</span>
+                      <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-0.5">{t('entry_zone')}</span>
                       <span className="text-sm font-medium text-foreground">{signal.entryZone}</span>
                     </div>
                   </div>
@@ -194,7 +196,7 @@ const SignalHistory = () => {
                       className="px-4 py-2 rounded-lg bg-accent/60 border border-white/5 text-xs font-bold text-foreground hover:bg-gold hover:text-black transition-all flex items-center gap-2"
                     >
                       <Zap className="w-3.5 h-3.5" />
-                      View Strategy
+                      {t('view_strategy')}
                     </button>
                   </div>
                 </div>

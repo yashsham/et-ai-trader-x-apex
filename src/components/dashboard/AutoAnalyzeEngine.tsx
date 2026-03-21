@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { API_BASE_URL } from "@/lib/api-config";
+import { toast } from "sonner";
 import { 
   Zap, 
   Search, 
@@ -19,29 +21,22 @@ import {
 import { TradePlanModal } from "./TradePlanModal";
 import type { SignalData } from "./AISignalCard";
 
-const logs = [
-  { agent: "Radar Agent", message: "Scanning 500+ stocks for institutional footprint...", type: "radar" },
-  { agent: "Radar Agent", message: "Abnormal volume spike detected in RELIANCE (Something is cooking...)", type: "radar" },
-  { agent: "News Agent", message: "Scraping global energy news and insider trade filings...", type: "news" },
-  { agent: "News Agent", message: "Positive sentiment mismatch: News is good, but price hasn't reacted yet.", type: "news" },
-  { agent: "Chart Agent", message: "Analyzing Fibonacci levels & RSI divergence...", type: "chart" },
-  { agent: "Chart Agent", message: "Breakout confirm ho raha hai. Support strong hai at ₹2410.", type: "chart" },
-  { agent: "Decision Agent", message: "Synthesizing signals. Match rate: 91.4%. Probability is High.", type: "decision" },
-  { agent: "Action Agent", message: "Finalizing risk-adjusted entry/exit plan. Ready for reveal.", type: "action" },
-];
+// Global constants moved inside component for translation support
 
-const scanMessages = [
-  "Initializing Agent Swarm...",
-  "Scanning 5,248 assets in real-time...",
-  "Detecting breakout patterns...",
-  "Analyzing institutional order flow...",
-  "Processing news sentiment...",
-  "Identifying high-conviction trades..."
-];
+// Global constants moved inside component for translation support
 
 export function AutoAnalyzeEngine() {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
+  const [searchParams] = useSearchParams();
   const [targetSymbol, setTargetSymbol] = useState("RELIANCE.NS");
+
+  useEffect(() => {
+    const symbol = searchParams.get("symbol");
+    if (symbol) {
+      setTargetSymbol(symbol);
+    }
+  }, [searchParams]);
+
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [scanIndex, setScanIndex] = useState(0);
@@ -50,6 +45,26 @@ export function AutoAnalyzeEngine() {
   const [scannedCount, setScannedCount] = useState(0);
   const [isRevealing, setIsRevealing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const logs = [
+    { agent: "Radar Agent", message: t('scanning_assets'), type: "radar" },
+    { agent: "Radar Agent", message: t('detecting_breakout'), type: "radar" },
+    { agent: "News Agent", message: t('analyzing_flow'), type: "news" },
+    { agent: "News Agent", message: t('processing_sentiment'), id: 3, type: "news" },
+    { agent: "Chart Agent", message: t('identifying_trades'), id: 4, type: "chart" },
+    { agent: "Chart Agent", message: t('synthesizing_decision'), type: "chart" },
+    { agent: "Decision Agent", message: t('calculating_risk_reward'), type: "decision" },
+    { agent: "Action Agent", message: t('analysis_complete'), type: "action" },
+  ];
+
+  const scanMessages = [
+    t('scanning_assets'),
+    t('detecting_breakout'),
+    t('analyzing_flow'),
+    t('processing_sentiment'),
+    t('identifying_trades'),
+    t('synthesizing_decision')
+  ];
   
   // Real data state
   const [analysisResult, setAnalysisResult] = useState("");
@@ -138,10 +153,12 @@ export function AutoAnalyzeEngine() {
             } else {
               setAnalysisResult("AI Agent logic completed, but no structured recommendation was detected.");
               setAnalysisDecision("HOLD");
+              toast.error("Analysis completed but format was unrecognized.");
             }
           } catch (error) {
             console.error("Backend Error:", error);
             setAnalysisResult("Error connecting to AI swarm core.");
+            toast.error(`Analysis failed: ${error instanceof Error ? error.message : "Network error"}`);
           }
 
           setTimeout(() => {
@@ -158,7 +175,7 @@ export function AutoAnalyzeEngine() {
 
       return () => clearTimeout(timer);
     }
-  }, [isAnalyzing, currentStep]);
+  }, [isAnalyzing, currentStep, language]);
 
   useEffect(() => {
     if (isScanning) {
@@ -207,10 +224,10 @@ export function AutoAnalyzeEngine() {
             >
               <div className="flex items-center gap-4">
                 <Zap className="w-8 h-8 fill-white animate-pulse" />
-                EXECUTE AI SCAN
+                {t('execute_ai_scan')}
                 <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
               </div>
-              <span className="text-[10px] font-black tracking-[0.4em] opacity-80 group-hover:opacity-100 uppercase italic">Start Autonomous Reasoning</span>
+              <span className="text-[10px] font-black tracking-[0.4em] opacity-80 group-hover:opacity-100 uppercase italic">{t('start_reasoning')}</span>
               
               <div className="absolute -inset-1 bg-gradient-to-r from-crimson to-gold rounded-2xl blur-xl opacity-20 group-hover:opacity-60 transition duration-500"></div>
             </button>
@@ -219,12 +236,12 @@ export function AutoAnalyzeEngine() {
                 type="text"
                 value={targetSymbol}
                 onChange={e => setTargetSymbol(e.target.value)}
-                placeholder="Target Symbol (e.g. RELIANCE.NS)"
+                placeholder={t('target_symbol_placeholder')}
                 className="bg-transparent border-none text-white text-center w-full focus:outline-none font-mono uppercase tracking-widest placeholder:text-muted-foreground/50"
               />
             </div>
             <p className="text-muted-foreground text-sm font-medium italic opacity-70">
-              Triggering the Decision Engine reveals institutional flow across 5k+ assets.
+              {t('trigger_engine_desc')}
             </p>
           </motion.div>
         ) : isScanning ? (
@@ -290,9 +307,14 @@ export function AutoAnalyzeEngine() {
                     exit={{ opacity: 0, y: -20 }}
                     className="space-y-2"
                   >
-                    <div className="text-gold font-black tracking-[0.5em] uppercase text-[10px] mb-2">Neural Link Established</div>
+                    <div className="text-gold font-black tracking-[0.5em] uppercase text-[10px] mb-2">{t('neural_link_established')}</div>
                     <h3 className="text-5xl font-black text-white italic tracking-tighter uppercase leading-tight">
-                      {scanMessages[scanIndex]}
+                      {scanIndex === 0 ? t('scanning_assets') :
+                       scanIndex === 1 ? t('detecting_breakout') :
+                       scanIndex === 2 ? t('analyzing_flow') :
+                       scanIndex === 3 ? t('processing_sentiment') :
+                       scanIndex === 4 ? t('identifying_trades') :
+                       t('scanning_assets')}
                     </h3>
                   </motion.div>
                 </AnimatePresence>
@@ -307,7 +329,7 @@ export function AutoAnalyzeEngine() {
                   </div>
                   <div className="flex justify-between items-center px-1">
                     <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
-                      Cross-referencing 842 Data Points
+                      {t('cross_referencing')}
                     </span>
                     <span className="text-lg font-black text-gold font-mono-data">
                       {Math.round(((scanIndex + 1) / scanMessages.length) * 100)}%
@@ -319,11 +341,11 @@ export function AutoAnalyzeEngine() {
               {/* Console Footprint */}
               <div className="grid grid-cols-2 gap-8 w-full border-t border-white/10 pt-8 mt-4">
                 <div className="space-y-1">
-                  <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Global Sentiment</div>
+                  <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{t('global_sentiment')}</div>
                   <div className="text-xl font-black text-profit font-mono-data tracking-tighter">BULLISH [9.2]</div>
                 </div>
                 <div className="space-y-1 text-right">
-                  <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Institutional Alpha</div>
+                  <div className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{t('institutional_alpha')}</div>
                   <div className="text-xl font-black text-gold font-mono-data tracking-tighter">DETECTED</div>
                 </div>
               </div>
@@ -352,17 +374,17 @@ export function AutoAnalyzeEngine() {
                   <h3 className="font-display font-bold text-foreground text-lg italic">Decision Engine Reasoning</h3>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-profit animate-pulse">● LIVE</span>
-                    <span className="text-xs text-muted-foreground font-mono">STOCKS SCANNED: <span className="text-gold tracking-widest font-black">{scannedCount}</span></span>
+                    <span className="text-xs text-muted-foreground font-mono">{t('stocks_scanned')}: <span className="text-gold tracking-widest font-black">{scannedCount}</span></span>
                   </div>
                 </div>
               </div>
               <div className="flex flex-col items-end">
                 <div className="px-3 py-1 rounded-full bg-gold/10 border border-gold/20 mb-1">
                   <span className="text-[10px] font-bold text-gold uppercase tracking-tighter">
-                    NEURAL LINK: ACTIVE
+                    {t('neural_link_active')}
                   </span>
                 </div>
-                <span className="text-[10px] text-muted-foreground font-mono">LATENCY: 12ms</span>
+                <span className="text-[10px] text-muted-foreground font-mono">{t('latency')}: 12ms</span>
               </div>
             </div>
 
@@ -417,9 +439,9 @@ export function AutoAnalyzeEngine() {
               <Brain className="w-12 h-12 text-gold" />
             </motion.div>
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-white italic tracking-tighter">SYNTHESIZING FINAL DECISION</h3>
+              <h3 className="text-2xl font-black text-white italic tracking-tighter">{t('synthesizing_decision')}</h3>
               <p className="text-muted-foreground animate-pulse font-mono tracking-widest text-xs">
-                CALCULATING OPTIMAL RISK-REWARD RATIO...
+                {t('calculating_risk_reward')}
               </p>
             </div>
           </motion.div>
@@ -433,7 +455,7 @@ export function AutoAnalyzeEngine() {
             <div className="bg-gradient-to-r from-gold/20 via-gold/5 to-transparent p-8 border-b border-gold/20 relative">
               <div className="absolute top-0 right-0 p-4">
                 <div className="flex flex-col items-end">
-                  <div className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mb-1">AI Confidence</div>
+                  <div className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mb-1">{t('ai_confidence')}</div>
                   <div className="text-4xl font-black text-profit drop-shadow-[0_0_15px_hsl(var(--profit)/0.5)]">{parsedData.confidence > 0 ? `${parsedData.confidence}%` : "91.4%"}</div>
                 </div>
               </div>
@@ -441,7 +463,7 @@ export function AutoAnalyzeEngine() {
               <div className="flex flex-col gap-1 mb-4">
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full animate-ping ${analysisDecision === 'SELL' ? 'bg-loss' : 'bg-profit'}`} />
-                  <span className="text-xs font-black text-gold uppercase tracking-[0.3em]">Autonomous Alpha Signal</span>
+                  <span className="text-xs font-black text-gold uppercase tracking-[0.3em]">{t('autonomous_alpha_signal')}</span>
                 </div>
                 <h2 className="text-6xl font-black text-white tracking-tighter flex items-end gap-3 uppercase">
                   {targetSymbol.split('.')[0]}
@@ -456,10 +478,10 @@ export function AutoAnalyzeEngine() {
               }`}>
                 <Zap className="w-5 h-5 fill-current" />
                 <span className="text-lg font-black uppercase italic">
-                  {analysisDecision === 'BUY' ? 'Strong Buy Recommendation' :
-                   analysisDecision === 'SELL' ? 'Sell/Avoid Recommendation' :
-                   analysisDecision === 'HOLD' ? 'Hold / Monitor Position' :
-                   'Analysis Complete'}
+                    {analysisDecision === 'BUY' ? t('strong_buy') :
+                     analysisDecision === 'SELL' ? t('sell_avoid') :
+                     analysisDecision === 'HOLD' ? t('hold_monitor') :
+                     t('analysis_complete')}
                 </span>
               </div>
             </div>
@@ -468,7 +490,7 @@ export function AutoAnalyzeEngine() {
               <div className="space-y-8">
                 <div>
                   <h4 className="flex items-center gap-2 text-xs font-black text-gold uppercase tracking-widest mb-4">
-                    <Brain className="w-4 h-4" /> Core Reasoning (AI Output)
+                    <Brain className="w-4 h-4" /> {t('core_reasoning')}
                   </h4>
                   <div className="relative">
                     <div className="absolute -left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-gold to-transparent rounded-full" />
@@ -483,11 +505,11 @@ export function AutoAnalyzeEngine() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="ai-card p-5 bg-white/[0.03] border-white/5 hover:border-gold/30 transition-all">
-                    <div className="text-[10px] text-muted-foreground uppercase font-black mb-1 tracking-widest">Entry Zone</div>
+                    <div className="text-[10px] text-muted-foreground uppercase font-black mb-1 tracking-widest">{t('entry_zone')}</div>
                     <div className="text-xl font-black text-white">{parsedData.entry}</div>
                   </div>
                   <div className="ai-card p-5 bg-white/[0.03] border-white/5 hover:border-profit/30 transition-all">
-                    <div className="text-[10px] text-muted-foreground uppercase font-black mb-1 tracking-widest">Target Price</div>
+                    <div className="text-[10px] text-muted-foreground uppercase font-black mb-1 tracking-widest">{t('target_price')}</div>
                     <div className="text-xl font-black text-profit flex items-center gap-1">
                       {parsedData.target} <TrendingUp className="w-4 h-4" />
                     </div>
@@ -498,12 +520,12 @@ export function AutoAnalyzeEngine() {
               <div className="space-y-8">
                 <div>
                   <h4 className="flex items-center gap-2 text-xs font-black text-muted-foreground uppercase tracking-widest mb-4">
-                    <ShieldAlert className="w-4 h-4" /> Risk Protection System
+                    <ShieldAlert className="w-4 h-4" /> {t('risk_protection_system')}
                   </h4>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 rounded-xl border border-loss/30 bg-loss/10 shadow-[0_0_20px_-5px_hsl(var(--loss)/0.2)]">
                       <div className="flex flex-col">
-                        <span className="text-xs font-bold text-loss/80 uppercase">Mandatory Stop</span>
+                        <span className="text-xs font-bold text-loss/80 uppercase">{t('stop_loss')}</span>
                         <span className="text-lg font-black text-white">{parsedData.stop_loss}</span>
                       </div>
                       <div className="p-2 rounded-lg bg-loss/20">
@@ -512,7 +534,7 @@ export function AutoAnalyzeEngine() {
                     </div>
                     <div className="flex items-center justify-between p-4 rounded-xl border border-white/10 bg-white/5">
                       <div className="flex flex-col">
-                        <span className="text-xs font-bold text-muted-foreground uppercase">Recommended Size</span>
+                        <span className="text-xs font-bold text-muted-foreground uppercase">{t('recommended_size')}</span>
                         <span className="text-lg font-black text-white font-mono">8.5% Portfolio</span>
                       </div>
                     </div>
@@ -526,7 +548,7 @@ export function AutoAnalyzeEngine() {
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
                     <BarChart3 className="w-6 h-6 animate-bounce" />
-                    SIMULATE TRADE PLAN
+                    {t('simulate_trade')}
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </button>
                   <button 
@@ -537,7 +559,7 @@ export function AutoAnalyzeEngine() {
                     }}
                     className="text-xs font-black text-muted-foreground hover:text-gold uppercase tracking-[0.2em] transition-colors"
                   >
-                    RESET AGENT ENGINE
+                    {t('reset_agent')}
                   </button>
                 </div>
               </div>

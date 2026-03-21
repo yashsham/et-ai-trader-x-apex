@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { API_BASE_URL } from "@/lib/api-config";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function SentimentGauge() {
+  const { t, language } = useLanguage();
   const [sentiment, setSentiment] = useState(50);
   const [label, setLabel] = useState("Neutral");
   const [loading, setLoading] = useState(true);
@@ -10,7 +12,7 @@ export function SentimentGauge() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/market/sentiment`);
+        const res = await fetch(`${API_BASE_URL}/api/v1/market/sentiment?lang=${language}`);
         const json = await res.json();
         if (json.success && json.data) {
           setSentiment(json.data.score);
@@ -23,7 +25,7 @@ export function SentimentGauge() {
       }
     }
     fetchData();
-  }, []);
+  }, [language]);
 
   if (loading) {
     return (
@@ -39,7 +41,7 @@ export function SentimentGauge() {
   return (
     <div className="ai-card p-6 flex flex-col items-center justify-center">
       <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-4">
-        Market Sentiment (Live News)
+        {t('market_sentiment')}
       </p>
 
       {/* Gauge */}
@@ -89,13 +91,13 @@ export function SentimentGauge() {
         }`}>{sentiment}%</span>
         <p className={`text-sm font-medium mt-1 ${
           label === "Bullish" ? "text-profit" : label === "Bearish" ? "text-loss" : "text-gold"
-        }`}>{label}</p>
+        }`}>{t(label.toLowerCase() as any)}</p>
       </div>
 
       <div className="flex justify-between w-full mt-3 px-2">
-        <span className="text-[10px] text-loss">Bearish</span>
-        <span className="text-[10px] text-gold">Neutral</span>
-        <span className="text-[10px] text-profit">Bullish</span>
+        <span className="text-[10px] text-loss">{t('bearish')}</span>
+        <span className="text-[10px] text-gold">{t('neutral')}</span>
+        <span className="text-[10px] text-profit">{t('bullish')}</span>
       </div>
     </div>
   );

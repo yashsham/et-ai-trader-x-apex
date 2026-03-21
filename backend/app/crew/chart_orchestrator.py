@@ -4,10 +4,11 @@ from app.core.response_normalizer import response_normalizer
 import json
 
 class ChartCrew:
-    def __init__(self, symbol: str, technical_context: dict):
+    def __init__(self, symbol: str, technical_context: dict, language: str = "English"):
         self.symbol = symbol
         self.technical_context = technical_context
-        self.agents = TradingAgents()
+        self.language = language
+        self.agents = TradingAgents(language=language)
 
     def run(self):
         # Initialize specialized agents
@@ -75,6 +76,15 @@ class ChartCrew:
             
             # Normalize for internal schema
             normalized = response_normalizer.normalize(raw_result, symbol=self.symbol, source="ChartIntelligence")
+            
+            # ── DEDICATED TRANSLATION LAYER ──
+            if self.language != "English" and isinstance(normalized.data, dict):
+                from app.services.translation_service import translation_service
+                explanation = normalized.data.get("explanation")
+                if explanation:
+                    translated = translation_service.translate(explanation, self.language)
+                    normalized.data["explanation"] = translated
+
             return normalized.model_dump()
         except Exception as e:
             import traceback

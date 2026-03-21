@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { API_BASE_URL } from "@/lib/api-config";
 import { ArrowUpRight, Clock, Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface NewsItem {
   id: number;
@@ -21,13 +22,14 @@ const impactColors: Record<string, string> = {
 };
 
 const MarketNews = () => {
+  const { t, language } = useLanguage();
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/market/news`);
+        const res = await fetch(`${API_BASE_URL}/api/v1/market/news?lang=${language}`);
         const json = await res.json();
         if (json.success && json.data) {
           setNews(json.data);
@@ -39,15 +41,15 @@ const MarketNews = () => {
       }
     }
     fetchData();
-  }, []);
+  }, [language]);
 
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Market News</h1>
+          <h1 className="font-display text-2xl font-bold text-foreground">{t('news')}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Live AI-curated news with impact analysis
+            {t('news_desc')}
           </p>
         </div>
 
@@ -59,7 +61,7 @@ const MarketNews = () => {
           <div className="space-y-4">
             {news.length === 0 && (
               <div className="ai-card p-8 text-center text-muted-foreground">
-                No recent news found.
+                {t('no_insights')}
               </div>
             )}
             {news.map((item) => (
@@ -74,7 +76,7 @@ const MarketNews = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${impactColors[item.impact] || impactColors["Medium"]}`}>
-                        {item.impact} Impact
+                        {item.impact} {t('risk_label')}
                       </span>
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
                         {item.sector}

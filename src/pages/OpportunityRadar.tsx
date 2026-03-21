@@ -6,8 +6,10 @@ import { TradePlanModal } from "@/components/dashboard/TradePlanModal";
 import { AIDecisionStrip } from "@/components/dashboard/AIDecisionStrip";
 import { motion } from "framer-motion";
 import { getAllAnalyses } from "@/lib/supabase";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const OpportunityRadar = () => {
+  const { t } = useLanguage();
   const [opportunities, setOpportunities] = useState<SignalData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSignal, setSelectedSignal] = useState<SignalData | null>(null);
@@ -15,7 +17,9 @@ const OpportunityRadar = () => {
 
   useEffect(() => {
     async function loadRadar() {
-      const results = await getAllAnalyses(20);
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/api/v1/radar/history?limit=20&lang=${language}`);
+      const json = await res.json();
+      const results = json.data || [];
       
       // Map Supabase AnalysisResult to the Frontend SignalData structure
       const mapped: SignalData[] = results.map((r, index) => {
@@ -87,9 +91,9 @@ const OpportunityRadar = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold text-foreground">Opportunity Radar</h1>
+            <h1 className="font-display text-2xl font-bold text-foreground">{t('radar')}</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Live AI-detected trading opportunities from your history
+              {t('radar_desc')}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -99,10 +103,10 @@ const OpportunityRadar = () => {
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[hsl(var(--crimson)/0.12)] text-[hsl(var(--crimson))]"
             >
               <Zap className="w-4 h-4" />
-              <span className="text-xs font-bold">{highConfCount} High-Confidence</span>
+              <span className="text-xs font-bold">{highConfCount} {t('high_confidence')}</span>
             </motion.div>
             <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs text-muted-foreground hover:text-foreground hover:border-[hsl(var(--gold)/0.3)] transition-all">
-              <SlidersHorizontal className="w-3.5 h-3.5" /> Filters
+              <SlidersHorizontal className="w-3.5 h-3.5" /> {t('filters')}
             </button>
           </div>
         </div>
@@ -110,17 +114,17 @@ const OpportunityRadar = () => {
         {loading ? (
           <div className="ai-card p-12 flex flex-col items-center justify-center min-h-[400px]">
              <Loader2 className="w-8 h-8 text-gold animate-spin opacity-50 mb-4" />
-             <p className="text-sm text-muted-foreground">Syncing live radar...</p>
+             <p className="text-sm text-muted-foreground">{t('syncing_radar')}</p>
           </div>
         ) : (
           <>
             {/* Stats strip */}
             <div className="grid grid-cols-4 gap-3">
               {[
-                { label: "Active Signals", value: opportunities.length.toString(), color: "text-foreground" },
-                { label: "High Confidence", value: highConfCount.toString(), color: "text-gold" },
-                { label: "Avg Expected Move", value: opportunities.length > 0 ? `+${(opportunities.reduce<number>((acc, curr) => acc + (curr.expectedMove || 0), 0) / opportunities.length).toFixed(1)}%` : "0%", color: "text-profit" },
-                { label: "Best Signal", value: opportunities.length > 0 ? opportunities.reduce((a, b) => a.confidence > b.confidence ? a : b).stock : "None", color: "text-[hsl(var(--crimson))]" },
+                { label: t('active_signals'), value: opportunities.length.toString(), color: "text-foreground" },
+                { label: t('high_confidence'), value: highConfCount.toString(), color: "text-gold" },
+                { label: t('avg_expected_move'), value: opportunities.length > 0 ? `+${(opportunities.reduce<number>((acc, curr) => acc + (curr.expectedMove || 0), 0) / opportunities.length).toFixed(1)}%` : "0%", color: "text-profit" },
+                { label: t('best_signal'), value: opportunities.length > 0 ? opportunities.reduce((a, b) => a.confidence > b.confidence ? a : b).stock : "None", color: "text-[hsl(var(--crimson))]" },
               ].map((stat, i) => (
                 <div key={i} className="ai-card p-4 text-center">
                   <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">{stat.label}</span>
@@ -131,7 +135,7 @@ const OpportunityRadar = () => {
 
             {opportunities.length === 0 ? (
                <div className="ai-card p-12 text-center text-muted-foreground mt-4">
-                  No signals detected. Run an Auto-Analyze scan on the Dashboard to populate opportunities.
+                {t('no_signals_detected')}
                </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5 mt-4">

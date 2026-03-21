@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage, TranslationKey } from "@/contexts/LanguageContext";
 import {
   LayoutDashboard,
   Radar,
@@ -15,14 +16,14 @@ import {
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 
-const navItems = [
-  { title: "Dashboard", icon: LayoutDashboard, path: "/" },
-  { title: "Opportunity Radar", icon: Radar, path: "/radar" },
-  { title: "Chart Intelligence", icon: BarChart3, path: "/charts" },
-  { title: "Portfolio Brain", icon: Brain, path: "/portfolio" },
-  { title: "AI Trading Assistant", icon: MessageSquare, path: "/assistant" },
-  { title: "Market News", icon: Newspaper, path: "/news" },
-  { title: "Settings", icon: Settings, path: "/settings" },
+const navItems: Array<{ titleKey: TranslationKey; icon: any; path: string }> = [
+  { titleKey: "dashboard", icon: LayoutDashboard, path: "/" },
+  { titleKey: "radar", icon: Radar, path: "/radar" },
+  { titleKey: "charts", icon: BarChart3, path: "/charts" },
+  { titleKey: "portfolio", icon: Brain, path: "/portfolio" },
+  { titleKey: "assistant", icon: MessageSquare, path: "/assistant" },
+  { titleKey: "news", icon: Newspaper, path: "/news" },
+  { titleKey: "settings", icon: Settings, path: "/settings" },
 ];
 
 export function AppSidebar({
@@ -33,6 +34,7 @@ export function AppSidebar({
   onToggle: () => void;
 }) {
   const { user, signOut } = useAuth();
+  const { t } = useLanguage();
   const userName = user?.email?.split("@")[0] || "Trader";
 
   return (
@@ -47,8 +49,8 @@ export function AppSidebar({
           <img src="logo.png" alt="Logo" className="w-8 h-8 rounded-lg object-cover shadow-[0_0_15px_-3px_var(--gold)]" />
           {!collapsed && (
             <div className="font-display flex flex-col">
-              <span className="text-xs font-black text-foreground tracking-tighter uppercase opacity-80">ET AI</span>
-              <span className="text-sm font-black text-gold tracking-tight -mt-1">Trader X</span>
+              <span className="text-xs font-black text-foreground tracking-tighter uppercase opacity-80">{t('et_ai')}</span>
+              <span className="text-sm font-black text-gold tracking-tight -mt-1">{t('trader_x')}</span>
             </div>
           )}
         </div>
@@ -66,7 +68,7 @@ export function AppSidebar({
           >
             <item.icon className="w-5 h-5 shrink-0 group-hover:text-gold transition-colors" />
             {!collapsed && (
-              <span className="text-sm font-medium truncate">{item.title}</span>
+              <span className="text-sm font-medium truncate">{t(item.titleKey)}</span>
             )}
           </NavLink>
         ))}
@@ -80,15 +82,15 @@ export function AppSidebar({
            </div>
            {!collapsed && (
              <div className="flex-1 min-w-0">
-               <p className="text-xs font-bold text-foreground truncate capitalize">{userName}</p>
-               <p className="text-[10px] text-muted-foreground truncate opacity-60">Verified Alpha</p>
+               <p className="text-xs font-bold text-foreground truncate capitalize">{user?.email?.split("@")[0] || t('trader')}</p>
+               <p className="text-[10px] text-muted-foreground truncate opacity-60">{t('verified_alpha')}</p>
              </div>
            )}
            {!collapsed && (
              <button 
                onClick={signOut}
                className="p-1.5 rounded-md hover:bg-white/10 text-muted-foreground hover:text-crimson transition-colors"
-               title="Sign Out"
+               title={t('logout')}
              >
                <LogOut className="w-4 h-4" />
              </button>
@@ -98,7 +100,7 @@ export function AppSidebar({
           <button 
             onClick={signOut}
             className="w-full mt-2 flex justify-center py-2 text-muted-foreground hover:text-crimson transition-colors"
-            title="Sign Out"
+            title={t('logout')}
           >
             <LogOut className="w-4 h-4" />
           </button>

@@ -4,7 +4,7 @@ from app.core.response_normalizer import response_normalizer
 import json
 
 class DashboardCrew:
-    def __init__(self, context_data: dict):
+    def __init__(self, context_data: dict, language: str = "English"):
         """
         context_data contains:
         - overview: index status
@@ -14,7 +14,8 @@ class DashboardCrew:
         - watchlist: watchlist status
         """
         self.context_data = context_data
-        self.agents = TradingAgents()
+        self.language = language
+        self.agents = TradingAgents(language=language)
 
     def run(self):
         # 1. Initialize summary agent
@@ -29,13 +30,13 @@ class DashboardCrew:
         task = Task(
             description=(
                 f"Analyze this real-time market data: {context_str}. "
-                "Synthesize it into a sharp 'Executive Focus' summary for the user. "
+                f"Synthesize it into a sharp 'Executive Focus' summary in {self.language} for the user. "
                 "Highlight the single most important 'Priority Action' (e.g., 'Watch for Nifty breakdown', 'IT sector rallying'). "
                 "Keep it professional, ultra-concise, and actionable."
             ),
             expected_output=(
                 "A JSON object with two fields: "
-                "'summary': (2-3 sentences of insight), "
+                f"'summary': (2-3 sentences of insight in {self.language}), "
                 "'priority_action': (A short string like 'WATCH_BREAKOUT' or 'ACCUMULATE_GAINERS')"
             ),
             agent=exec_agent
@@ -50,7 +51,22 @@ class DashboardCrew:
 
         result = crew.kickoff()
         raw_result = str(result)
+
+        # ── DYNAMIC TRANSLATION ──
+        # Provide a high-quality machine translation bridge if needed
+        if self.language != "English":
+            from app.services.translation_service import translation_service
+            # We translate the normalized summary later, or we can do it here.
+            # Let's normalize first.
         
         # Normalize
         normalized = response_normalizer.normalize(raw_result, source="DashboardCrew")
+        
+        # ── APPLY TRANSLATION TO SUMMARY ──
+        if self.language != "English" and isinstance(normalized.data, dict):
+            summary = normalized.data.get("summary")
+            if summary:
+                from app.services.translation_service import translation_service
+                normalized.data["summary"] = translation_service.translate(summary, self.language)
+
         return normalized.model_dump()

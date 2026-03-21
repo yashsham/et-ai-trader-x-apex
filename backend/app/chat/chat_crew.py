@@ -1,6 +1,6 @@
 from crewai import Crew, Process, Task
 from app.agents.trading_agents import TradingAgents
-from app.chat.tools import financial_data_tool, news_data_tool, rag_tool
+from app.chat.tools import financial_data_tool, news_data_tool
 from app.core.response_normalizer import response_normalizer
 import json
 
@@ -13,15 +13,15 @@ class ChatbotCrew:
     def run(self):
         # 1. Specialized Agents
         router = self.agents.query_router_agent()
-        researcher = self.agents.data_agent() # Reusing existing data agent
-        catalyst_hacker = self.agents.catalyst_agent() # For news/sentiment
-        retriever = self.agents.explanation_agent() # Using educator for RAG synthesis
+        researcher = self.agents.data_agent()
+        analyst = self.agents.signal_agent()
+        sentiment_bot = self.agents.sentiment_agent()
         compliance_guard = self.agents.compliance_agent()
-        answer_expert = self.agents.answer_agent()
+        decision_agent = self.agents.decision_agent() # The Final Decision Agent
 
         # 2. Sequential Task Flow
         
-        # Task 1: Query Routing
+        # Task 1: Identify Query Intent
         route_task = Task(
             description=(
                 f"Analyze the user query: '{self.query}'. "
@@ -31,60 +31,62 @@ class ChatbotCrew:
             agent=router
         )
 
-        # Task 2: Data Gathering (Conditional in logic, but sequential in Crew)
-        research_task = Task(
-            description=(
-                "If the query involves stocks, fetch live metrics and prices. "
-                "If it involves news, gather recent headlines and sentiment."
-            ),
-            expected_output="A consolidated fact sheet of live market numbers and news.",
+        # Task 2: Market Data Extraction
+        market_task = Task(
+            description="Fetch live prices, volume, and technical context for the identified symbols.",
+            expected_output="Detailed fact sheet of live market numbers.",
             agent=researcher,
-            tools=[financial_data_tool, news_data_tool]
+            tools=[financial_data_tool]
         )
 
-        # Task 3: RAG Retrieval
-        rag_task = Task(
-            description=(
-                f"Search the internal knowledge base for any principles or past context related to: '{self.query}'. "
-                "Look for 'ET AI Trader' specific strategies or general market wisdom."
-            ),
-            expected_output="Relevant snippets and principles from the RAG knowledge base.",
-            agent=retriever,
-            tools=[rag_tool]
+        # Task 3: News & Catalyst Analysis
+        news_task = Task(
+            description="Search for the latest market-moving news and sentiment for the identified symbols.",
+            expected_output="Sentiment summary and key news catalysts.",
+            agent=sentiment_bot,
+            tools=[news_data_tool]
         )
 
-        # Task 4: Compliance Review
+        # Task 4: Compliance Scan
         compliance_task = Task(
             description=(
-                "Review the gathered data and RAG context. Ensure no definitive 'Buy/Sell' promises are made "
-                "without mentioning risk. Filter out any potential hallucinations."
+                "Review the gathered market and news data. Ensure no definitive 'Buy/Sell' promises are made "
+                "without mentioning risk."
             ),
-            expected_output="A 'Safety Approved' version of the context with mandatory risk disclosures.",
+            expected_output="A safety-approved context block with risk disclosures.",
             agent=compliance_guard
         )
 
-        # Task 5: Final Answer Formulation
-        answer_task = Task(
+        # Task 5: Final Executive Synthesis
+        decision_task = Task(
             description=(
-                "Synthesize everything into a helpful, empathetic, and professional response. "
-                "Use the 'Professional Financial Communicator' persona. If symbols are mentioned, "
-                "provide a clear consensus summary."
+                "Review the entire data chain. Compose a final, premium response to the user's query: '{self.query}'. "
+                "MANDATORY FORMATTING: \n"
+                "### 💎 **CORE MARKET INSIGHT**\n"
+                "[Insight text here]\n\n"
+                "### 📈 **TECHNICAL & SENTIMENT PULSE**\n"
+                "[Analysis here with bullet points]\n\n"
+                "### 🛡️ **RISK GUARD & NEXT STEPS**\n"
+                "[Specific warnings and actions]\n\n"
+                "**BOTTOM LINE:** [Final sharp conclusion]\n"
+                "Maintain a clean, sophisticated look with consistent spacing."
             ),
-            expected_output="A beautifully formatted markdown response with citations.",
-            agent=answer_expert
+            expected_output=f"A visually stunning, bolded markdown report in {self.agents.language}.",
+            agent=decision_agent
         )
 
         # 3. Kickoff
         crew = Crew(
-            agents=[router, researcher, retriever, compliance_guard, answer_expert],
-            tasks=[route_task, research_task, rag_task, compliance_task, answer_task],
+            agents=[router, researcher, sentiment_bot, compliance_guard, decision_agent],
+            tasks=[route_task, market_task, news_task, compliance_task, decision_task],
             process=Process.sequential,
             verbose=True
         )
 
         result = crew.kickoff()
         raw_result = str(result)
-        
-        # Normalize/Normalize for API
-        normalized = response_normalizer.normalize(raw_result, source="AICopilot")
-        return normalized.model_dump()
+        print(f"[ChatbotCrew] Final Result: {raw_result[:100]}...")
+        return {
+            "explanation": raw_result,
+            "symbols": [] # Symbols can be extracted later if needed
+        }

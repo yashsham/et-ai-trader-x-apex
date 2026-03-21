@@ -1,4 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { translations } from '@/lib/translations';
+
+export type TranslationKey = keyof typeof translations.English;
 
 export type Language = 
   | 'English' 
@@ -14,6 +17,7 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   languageLabel: string;
+  t: (key: TranslationKey) => string;
 }
 
 const languageMap: Record<Language, string> = {
@@ -40,8 +44,13 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     localStorage.setItem('et_ai_language', lang);
   };
 
+  const t = (key: TranslationKey): string => {
+    // @ts-ignore - Indexing with language
+    return translations[language]?.[key] || translations.English[key] || key;
+  };
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, languageLabel: languageMap[language] }}>
+    <LanguageContext.Provider value={{ language, setLanguage, languageLabel: languageMap[language], t }}>
       {children}
     </LanguageContext.Provider>
   );

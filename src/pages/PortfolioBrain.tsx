@@ -31,7 +31,7 @@ interface PortfolioData {
 
 const PortfolioBrain = () => {
   const { user, loading: authLoading } = useAuth();
-  const { language } = useLanguage();
+  const { t, language } = useLanguage();
   const [data, setData] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -65,7 +65,7 @@ const PortfolioBrain = () => {
       setLoading(false);
       setIsOptimizing(false);
     }
-  }, []);
+  }, [user, language]);
 
   useEffect(() => {
     loadPortfolio();
@@ -106,9 +106,9 @@ const PortfolioBrain = () => {
       <div className="space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold text-foreground">Portfolio Brain</h1>
+            <h1 className="font-display text-2xl font-bold text-foreground">{t('portfolio_brain')}</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Live AI-powered portfolio analysis & optimization
+              {t('portfolio_desc')}
             </p>
           </div>
           <button 
@@ -121,21 +121,21 @@ const PortfolioBrain = () => {
             ) : (
               <Zap className="w-3.5 h-3.5" />
             )}
-            {isOptimizing ? "AI Optimization in Progress..." : "Optimize Portfolio"}
+            {isOptimizing ? t('optimizing') : t('optimize_portfolio')}
           </button>
         </div>
 
         {loading || !data ? (
           <div className="ai-card p-12 flex flex-col items-center justify-center min-h-[500px]">
              <Loader2 className="w-8 h-8 text-gold animate-spin opacity-50 mb-4" />
-             <p className="text-sm text-muted-foreground">Syncing live holdings and latest market prices...</p>
+             <p className="text-sm text-muted-foreground">{t('syncing_holdings')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Pie Chart */}
             <div className="ai-card p-6 flex flex-col items-center">
               <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-4">
-                Sector Allocation
+                {t('sector_allocation')}
               </p>
               <svg viewBox="0 0 100 100" className="w-48 h-48 mb-4">
                 {pieSlices.length > 0 ? pieSlices.map((slice, i) => (
@@ -148,7 +148,7 @@ const PortfolioBrain = () => {
                   {data.total_value}
                 </text>
                 <text x="50" y="57" textAnchor="middle" fill="hsl(214 20% 69%)" fontSize="4.5">
-                  Total Value
+                  {t('portfolio_value')}
                 </text>
               </svg>
               <div className="flex flex-wrap gap-3 justify-center">
@@ -166,11 +166,11 @@ const PortfolioBrain = () => {
             {/* Holdings */}
             <div className="ai-card p-6">
               <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-4">
-                Holdings
+                {t('holdings')}
               </p>
               {data.holdings.length === 0 ? (
                 <div className="text-center text-sm text-muted-foreground py-8">
-                   No positions detected.
+                   {t('no_positions')}
                 </div>
               ) : (
                 <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
@@ -197,7 +197,7 @@ const PortfolioBrain = () => {
               {/* Risk Meter */}
               <div className="ai-card p-6">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-4">
-                  Risk Level
+                  {t('risk_label')}
                 </p>
                 <div className="w-full h-3 bg-muted rounded-full overflow-hidden mb-2">
                   <div
@@ -209,14 +209,14 @@ const PortfolioBrain = () => {
                   />
                 </div>
                 <div className="flex justify-between text-[10px] text-muted-foreground">
-                  <span>Low</span>
-                  <span>Medium</span>
-                  <span>High</span>
+                  <span>{t('low')}</span>
+                  <span>{t('medium')}</span>
+                  <span>{t('high')}</span>
                 </div>
                 <p className="text-center mt-2">
                   <span className="font-mono-data text-lg font-bold text-gold">{data.risk_level}%</span>
                   <span className="text-xs text-muted-foreground ml-2">
-                    {data.risk_level < 40 ? "Low Risk" : data.risk_level > 70 ? "High Risk" : "Moderate Risk"}
+                    {data.risk_level < 40 ? t('low_risk') : data.risk_level > 70 ? t('high_risk') : t('moderate_risk')}
                   </span>
                 </p>
               </div>
@@ -224,11 +224,11 @@ const PortfolioBrain = () => {
               {/* AI Insights */}
               <div className="ai-card p-6">
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-4">
-                  Live AI Insights
+                  {t('ai_insights')}
                 </p>
                 <div className="space-y-3">
                   {data.insights.length === 0 && (
-                     <p className="text-xs text-muted-foreground text-center">No insights available.</p>
+                     <p className="text-xs text-muted-foreground text-center">{t('no_insights')}</p>
                   )}
                   {data.insights.map((insight, i) => (
                     <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-accent">

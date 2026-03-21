@@ -4,8 +4,10 @@ import { Settings, User, Bell, Save, Loader2 } from "lucide-react";
 import { getSettings, updateSettings, UserSettings } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const SettingsPage = () => {
+  const { t } = useLanguage();
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -70,10 +72,10 @@ const SettingsPage = () => {
             <div className="w-10 h-10 rounded-xl gradient-crimson-gold flex items-center justify-center shadow-lg shadow-crimson/20">
               <Settings className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-4xl font-black text-white font-display uppercase italic tracking-tight">User Profile</h1>
+            <h1 className="text-4xl font-black text-white font-display uppercase italic tracking-tight">{t('user_profile')}</h1>
           </div>
           <p className="text-muted-foreground font-medium opacity-80">
-            Manage your personal profile, regional settings, and notifications.
+            {t('settings_desc')}
           </p>
         </header>
 
@@ -93,14 +95,14 @@ const SettingsPage = () => {
                   <User className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-1">Personal Information</h3>
-                  <p className="text-sm text-muted-foreground">Update your account details and contact info.</p>
+                  <h3 className="text-xl font-bold text-white mb-1">{t('personal_info')}</h3>
+                  <p className="text-sm text-muted-foreground">{t('personal_info_desc')}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-muted-foreground uppercase tracking-widest">Full Name</label>
+                  <label className="text-xs font-black text-muted-foreground uppercase tracking-widest">{t('full_name_label')}</label>
                   <input
                     type="text"
                     name="full_name"
@@ -112,7 +114,7 @@ const SettingsPage = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-muted-foreground uppercase tracking-widest">Email Address</label>
+                  <label className="text-xs font-black text-muted-foreground uppercase tracking-widest">{t('email_label')}</label>
                   <input
                     type="email"
                     name="email"
@@ -132,14 +134,14 @@ const SettingsPage = () => {
                   <Bell className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-1">Preferences & Notifications</h3>
-                  <p className="text-sm text-muted-foreground">Manage your regional settings and email alerts.</p>
+                  <h3 className="text-xl font-bold text-white mb-1">{t('pref_notifications')}</h3>
+                  <p className="text-sm text-muted-foreground">{t('pref_desc')}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-muted-foreground uppercase tracking-widest">Regional Timezone</label>
+                  <label className="text-xs font-black text-muted-foreground uppercase tracking-widest">{t('timezone')}</label>
                   <select
                     name="timezone"
                     value={formData.timezone || "UTC"}
@@ -155,8 +157,8 @@ const SettingsPage = () => {
 
                 <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-4 py-3">
                   <div className="space-y-0.5">
-                    <label className="text-sm font-medium text-white">Email Notifications</label>
-                    <p className="text-xs text-muted-foreground">Receive daily digest alerts</p>
+                    <label className="text-sm font-medium text-white">{t('email_notifications')}</label>
+                    <p className="text-xs text-muted-foreground">{t('daily_digest')}</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input 
@@ -184,7 +186,7 @@ const SettingsPage = () => {
                 ) : (
                   <Save className="w-5 h-5" />
                 )}
-                <span>{saving ? 'Saving...' : 'Save Profile'}</span>
+                <span>{saving ? t('saving') : t('save_profile')}</span>
                 {!saving && <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />}
               </button>
             </div>

@@ -114,7 +114,7 @@ class PortfolioBrainService:
             "last_updated": datetime.now().isoformat()
         }
 
-    async def analyze_portfolio(self, user_id: str = "default_user"):
+    async def analyze_portfolio(self, user_id: str = "default_user", language: str = "English"):
         """Trigger AI Portfolio Optimization Swarm."""
         import asyncio
         from concurrent.futures import ThreadPoolExecutor

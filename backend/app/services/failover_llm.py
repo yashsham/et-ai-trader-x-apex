@@ -36,19 +36,25 @@ class FailoverLLM:
                 print(f"[FailoverLLM] [Success] Provider: {llm.model}")
                 return res
                 
-            except BaseException as e:
+            except Exception as e:
                 last_error = e
                 error_msg = str(e).lower()
                 print(f"[FailoverLLM] [Failure] Provider {llm.model} failed with: {error_msg[:150]}")
                 
                 # Check if it's a transient error that warrants a fallback
-                transient_keywords = ["rate_limit", "429", "authentication", "401", "timeout", "500", "overloaded", "quota"]
-                if any(x in error_msg for x in transient_keywords):
-                    print(f"[FailoverLLM] Detected transient error. Switching to next provider...")
+                transient_keywords = ["rate_limit", "429", "authentication", "401", "timeout", "500", "overloaded", "quota", "connection"]
+                if any(x in error_msg for x in transient_keywords) or i < len(self.all_llms) - 1:
+                    print(f"[FailoverLLM] Error detected. Switching to next provider ({i+2}/{len(self.all_llms)})...")
                     continue
                 else:
-                    print(f"[FailoverLLM] Non-transient error detected, but will try next provider anyway for safety.")
-                    continue
+                    raise e
+
+    def __call__(self, *args, **kwargs):
+        return self.call(*args, **kwargs)
+
+    def invoke(self, *args, **kwargs):
+        """LangChain compatibility."""
+        return self.call(*args, **kwargs)
         
         print(f"[FailoverLLM] CRITICAL: All {len(self.all_llms)} providers exhausted.")
         if last_error:

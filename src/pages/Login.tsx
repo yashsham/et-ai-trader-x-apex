@@ -3,12 +3,14 @@ import { supabase } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Mail, Lock, LogIn, Chrome, Loader2, ArrowRight, Brain, Shield } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleManualAuth = async (e: React.FormEvent) => {
@@ -62,7 +64,7 @@ const Login = () => {
             ET <span className="text-gold">AI</span> Trader <span className="text-crimson text-sm">X</span>
           </h1>
           <p className="text-sm text-muted-foreground">
-            {isSignUp ? "Join the elite cohort of AI traders" : "Access your institutional-grade terminal"}
+            {isSignUp ? t('join_elite') : t('access_terminal')}
           </p>
         </div>
 
@@ -70,7 +72,7 @@ const Login = () => {
         <div className="ai-card p-8 border border-white/[0.08] backdrop-blur-xl bg-black/40">
           <form onSubmit={handleManualAuth} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest ml-1">Email Address</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest ml-1">{t('email_label')}</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-4 w-4 text-muted-foreground group-focus-within:text-gold transition-colors" />
@@ -87,7 +89,7 @@ const Login = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest ml-1">Password</label>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest ml-1">{t('password_label')}</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Lock className="h-4 w-4 text-muted-foreground group-focus-within:text-gold transition-colors" />
@@ -112,7 +114,7 @@ const Login = () => {
                 <Loader2 className="w-4 h-4 animate-spin text-foreground" />
               ) : (
                 <>
-                  {isSignUp ? "Initialize Protocol" : "Authorize Access"}
+                  {isSignUp ? t('initialize_protocol') : t('authorize_access')}
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
@@ -121,7 +123,7 @@ const Login = () => {
 
           <div className="my-6 flex items-center gap-4">
             <div className="h-px flex-1 bg-white/10" />
-            <span className="text-[10px] text-muted-foreground uppercase tracking-widest flex-shrink-0">OR SECURE LOGIN WITH</span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest flex-shrink-0">{t('or_secure_login')}</span>
             <div className="h-px flex-1 bg-white/10" />
           </div>
 
@@ -130,18 +132,18 @@ const Login = () => {
             className="w-full py-3 px-4 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] text-foreground text-sm font-semibold transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
           >
             <Chrome className="w-4 h-4" />
-            Sign in with Google
+            {t('signin_google')}
           </button>
         </div>
 
         {/* Footer Toggle */}
         <p className="text-center text-xs text-muted-foreground">
-          {isSignUp ? "Already part of the network?" : "New to the intelligence engine?"}{" "}
+          {isSignUp ? t('already_network') : t('new_intelligence')}{" "}
           <button
             onClick={() => setIsSignUp(!isSignUp)}
             className="text-gold font-bold hover:underline ml-1"
           >
-            {isSignUp ? "Access Terminal" : "Request Access"}
+            {isSignUp ? t('access_terminal_btn') : t('request_access_btn')}
           </button>
         </p>
 

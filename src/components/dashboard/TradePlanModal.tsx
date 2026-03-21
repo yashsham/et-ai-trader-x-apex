@@ -8,8 +8,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { TrendingUp, ShieldAlert, Target, ArrowDown, Zap, Play, BarChart3, Brain, ArrowRight, Loader2 } from "lucide-react";
-import type { SignalData } from "./AISignalCard";
+import { SignalData } from "./AISignalCard";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TradePlanModalProps {
   open: boolean;
@@ -27,6 +28,7 @@ const tradePlans: Record<string, { entry: string; target: string; targetPct: str
 };
 
 export function TradePlanModal({ open, onOpenChange, data }: TradePlanModalProps) {
+  const { t } = useLanguage();
   const [isSimulating, setIsSimulating] = useState(false);
   if (!data) return null;
   
@@ -47,7 +49,7 @@ export function TradePlanModal({ open, onOpenChange, data }: TradePlanModalProps
     // Simulate complex math/risk calculation
     setTimeout(() => {
       setIsSimulating(false);
-      toast.success(`Trade Simulation Complete: ${data.stock}`, {
+      toast.success(`${t('analysis_complete')}: ${data.stock}`, {
         description: `Strategy validated for target ${plan.target}. Risk Reward ratio optimized.`,
       });
       onOpenChange(false);
@@ -70,7 +72,7 @@ export function TradePlanModal({ open, onOpenChange, data }: TradePlanModalProps
                 <DialogTitle className="font-mono-data text-lg font-bold text-foreground">{data.stock}</DialogTitle>
                 <DialogDescription className="text-xs text-gold font-semibold flex items-center gap-1">
                   <Zap className="w-3 h-3" />
-                  AI Generated Trade Strategy
+                  {t('ai_trade_strategy')}
                 </DialogDescription>
               </div>
             </div>
@@ -78,17 +80,17 @@ export function TradePlanModal({ open, onOpenChange, data }: TradePlanModalProps
 
           {/* Trade Parameters */}
           <div className="grid grid-cols-2 gap-3 mb-5">
-            <TradeParam icon={<Target className="w-4 h-4 text-profit" />} label="Entry Zone" value={plan.entry} />
-            <TradeParam icon={<TrendingUp className="w-4 h-4 text-profit" />} label="Target" value={`${plan.target} (${plan.targetPct})`} valueClass="text-profit" />
-            <TradeParam icon={<ArrowDown className="w-4 h-4 text-loss" />} label="Stop Loss" value={plan.stopLoss} valueClass="text-loss" />
-            <TradeParam icon={<ShieldAlert className="w-4 h-4 text-[hsl(var(--warning))]" />} label="Risk Level" value={data.risk} valueClass={data.risk === "Low" ? "text-profit" : data.risk === "High" ? "text-loss" : "text-[hsl(var(--warning))]"} />
+            <TradeParam icon={<Target className="w-4 h-4 text-profit" />} label={t('entry_zone')} value={plan.entry} />
+            <TradeParam icon={<TrendingUp className="w-4 h-4 text-profit" />} label={t('target_price')} value={`${plan.target} (${plan.targetPct})`} valueClass="text-profit" />
+            <TradeParam icon={<ArrowDown className="w-4 h-4 text-loss" />} label={t('stop_loss')} value={plan.stopLoss} valueClass="text-loss" />
+            <TradeParam icon={<ShieldAlert className="w-4 h-4 text-[hsl(var(--warning))]" />} label={t('risk_label')} value={data.risk} valueClass={data.risk === "Low" ? "text-profit" : data.risk === "High" ? "text-loss" : "text-[hsl(var(--warning))]"} />
           </div>
 
           {/* Probability & Risk Row */}
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="p-4 rounded-xl bg-accent/40 border border-white/5">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Accuracy</span>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">{t('accuracy')}</span>
                 <span className="font-mono-data text-lg font-black text-gold">{plan.probability}%</span>
               </div>
               <div className="h-1.5 rounded-full bg-muted overflow-hidden">
@@ -102,7 +104,7 @@ export function TradePlanModal({ open, onOpenChange, data }: TradePlanModalProps
             </div>
             <div className="p-4 rounded-xl bg-accent/40 border border-white/5">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Risk Exposure</span>
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">{t('risk_exposure')}</span>
                 <span className={`text-xs font-black uppercase ${
                   data.risk === 'Low' ? 'text-profit' : data.risk === 'High' ? 'text-loss' : 'text-gold'
                 }`}>{data.risk}</span>
@@ -120,7 +122,7 @@ export function TradePlanModal({ open, onOpenChange, data }: TradePlanModalProps
             <div className="absolute -left-3 top-0 bottom-0 w-1 bg-gold/30 rounded-full" />
             <div className="p-4 rounded-xl border border-gold/20 bg-gold/5 italic">
               <span className="text-[10px] uppercase tracking-widest text-gold font-black block mb-2 flex items-center gap-2">
-                <Brain className="w-3 h-3 text-gold" /> AI Strategic Overview
+                <Brain className="w-3 h-3 text-gold" /> {t('ai_strategic_overview')}
               </span>
               <p className="text-sm text-foreground/90 leading-relaxed">"{plan.reason}"</p>
             </div>
@@ -139,12 +141,12 @@ export function TradePlanModal({ open, onOpenChange, data }: TradePlanModalProps
               {isSimulating ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  SIMULATING RISK...
+                  {t('simulating_risk')}
                 </>
               ) : (
                 <>
                   <BarChart3 className="w-5 h-5" />
-                  SIMULATE TRADE PLAN
+                  {t('simulate_trade_plan')}
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
@@ -154,7 +156,7 @@ export function TradePlanModal({ open, onOpenChange, data }: TradePlanModalProps
               whileTap={{ scale: 0.98 }}
               className="w-full py-3 rounded-xl border border-white/10 text-muted-foreground text-xs font-bold hover:text-white hover:bg-white/5 transition-all"
             >
-              Close Strategy
+              {t('close_strategy')}
             </motion.button>
           </div>
         </div>

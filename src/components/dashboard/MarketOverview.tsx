@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { TrendingUp, TrendingDown, Loader2 } from "lucide-react";
 import { API_BASE_URL } from "@/lib/api-config";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OverviewData {
   symbol: string;
@@ -11,14 +12,14 @@ interface OverviewData {
 }
 
 export function MarketOverview() {
+  const { t, language } = useLanguage();
   const [data, setData] = useState<OverviewData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        // Use relative URL assuming proxy, or hardcode localhost for dev
-        const res = await fetch(`${API_BASE_URL}/api/v1/market/overview`);
+        const res = await fetch(`${API_BASE_URL}/api/v1/market/overview?lang=${language}`);
         const json = await res.json();
         if (json.success && json.data) {
           setData(json.data);
@@ -30,7 +31,7 @@ export function MarketOverview() {
       }
     }
     fetchData();
-  }, []);
+  }, [language]);
 
   if (loading || !data) {
     return (
@@ -77,7 +78,7 @@ export function MarketOverview() {
             </span>
           </div>
         </div>
-        <div className="text-xs text-muted-foreground">Today</div>
+        <div className="text-xs text-muted-foreground">{t('today')}</div>
       </div>
 
       {/* Mini Chart */}

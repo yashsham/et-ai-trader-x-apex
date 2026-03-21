@@ -54,7 +54,7 @@ class ChartIntelligenceService:
             ]
         }
 
-    def get_chart_analysis(self, symbol: str, period: str = "3mo"):
+    def get_chart_analysis(self, symbol: str, period: str = "3mo", language: str = "English"):
         """Main entry point for chart intelligence."""
         try:
             # 1. Fetch Data
@@ -79,7 +79,7 @@ class ChartIntelligenceService:
             }
             
             try:
-                crew = ChartCrew(symbol, tech_context)
+                crew = ChartCrew(symbol, tech_context, language=language)
                 ai_result = crew.run()
                 # Ensure we handle the StandardResponse format
                 if isinstance(ai_result, dict) and "data" in ai_result:

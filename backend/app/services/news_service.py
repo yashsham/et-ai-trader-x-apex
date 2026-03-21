@@ -10,25 +10,21 @@ class NewsIntelligenceService:
     def __init__(self):
         pass
 
-    async def get_curated_news(self, symbol: Optional[str] = None, query: Optional[str] = None):
+    async def get_curated_news(self, symbol: Optional[str] = None, query: Optional[str] = None, language: str = "English"):
         """Fetch raw news and run the AI Editor Swarm for clustering and impact."""
         raw_news = market_service.get_news(query or symbol or "Indian Stock Market Nifty")
         if not raw_news:
             return []
 
         try:
-            # Bypass heavy CrewAI execution for sub-5s latency on the main feed.
-            # In a production environment, this would be handled asynchronously by a cron job
-            # or background worker, and the API would just serve the pre-curated DB results.
-            # crew = NewsCrew(raw_news)
-            # curation_result = crew.run()
-            
             # 3. Snapshot for historical comparison
             if symbol:
                 db_service.save_news_snapshot(symbol, raw_news)
 
             # 4. Return formatted news items matching the frontend interface:
             # { id, headline, source, time, impact, summary, sector }
+            from app.services.translation_service import translation_service
+            
             results = []
             for i, item in enumerate(raw_news[:10]):
                 impact = "Medium"
@@ -49,14 +45,22 @@ class NewsIntelligenceService:
                 except:
                     time_str = published[:10]
 
+                headline = item.get("title", "Market Update")
+                summary = desc[:150] + ("..." if len(desc) > 150 else "")
+
+                # ── DYNAMIC TRANSLATION ──
+                if language != "English":
+                    headline = translation_service.translate(headline, language)
+                    summary = translation_service.translate(summary, language)
+
                 results.append({
                     "id": i,
-                    "headline": item.get("title", "Market Update"),
+                    "headline": headline,
                     "source": item.get("source", {}).get("name", "Market Feed") if isinstance(item.get("source"), dict) else item.get("source", "Market Feed"),
                     "time": time_str,
                     "sector": "Broad Market" if not symbol else symbol,
                     "impact": impact,
-                    "summary": desc[:150] + ("..." if len(desc) > 150 else ""),
+                    "summary": summary,
                     "url": item.get("url", "#")
                 })
             return results

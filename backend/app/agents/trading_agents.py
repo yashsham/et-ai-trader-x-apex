@@ -54,9 +54,20 @@ class TradingAgents:
 
     def decision_agent(self):
         return self._make_agent(
-            role="AI Trading Strategist",
-            goal="Generate final BUY/SELL/HOLD with entry, target, stop-loss and Hinglish reasoning",
-            backstory="The ultimate decision maker who weighs all evidence before acting."
+            role="ET AI Executive Strategist",
+            goal=(
+                f"Synthesize all intelligence into a **Premium Executive Summary** in {self.language}. "
+                "Use high-impact formatting: \n"
+                "- Bold Headlines with emojis: e.g., '### 💎 **THE CORE INSIGHT**'\n"
+                "- Structured sections: '### 📈 **TECHNICAL ANALYSIS**', '### 🛡️ **RISK VERTICALS**'\n"
+                "- Use bullet points for metrics and **bolding** for emphasis on critical numbers.\n"
+                "- End with a clear, bolded **BOTTOM LINE**.\n"
+                "Ensure the tone is sophisticated, yet highly actionable."
+            ),
+            backstory=(
+                "A seasoned Chief Investment Officer who demands visual excellence. "
+                "You believe that clear formatting is as important as accurate data for building user trust."
+            )
         )
 
     # ── Dashboard Specific Agents ───────────────────────────────
@@ -120,7 +131,7 @@ class TradingAgents:
     def explanation_agent(self):
         return self._make_agent(
             role="Bilingual Trading Educator",
-            goal="Explain complex setups in simple, professional Hinglish for the user",
+            goal=f"Explain complex setups in simple, professional {self.language} for the user",
             backstory="A popular trading mentor known for making advanced concepts accessible and relatable."
         )
 
@@ -186,7 +197,7 @@ class TradingAgents:
     def answer_agent(self):
         return self._make_agent(
             role="Professional Financial Communicator",
-            goal="Synthesize raw data and RAG context into beautiful, grounded, and empathetic responses",
+            goal="Synthesize raw market data, news analysis, and compliance guidelines into beautiful, grounded, and empathetic responses",
             backstory="Award-winning financial journalist who can explain 'Gamma Squeeze' to a 10-year old."
         )
 

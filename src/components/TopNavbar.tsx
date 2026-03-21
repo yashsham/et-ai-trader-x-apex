@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 export function TopNavbar() {
   const { user, signOut } = useAuth();
-  const { language, setLanguage, languageLabel } = useLanguage();
+  const { language, setLanguage, languageLabel, t } = useLanguage();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -71,7 +71,7 @@ export function TopNavbar() {
     setIsSearching(true);
     searchTimeout.current = setTimeout(async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/v1/search/stocks?q=${searchQuery}`);
+        const res = await fetch(`${API_BASE_URL}/api/v1/search/stocks?q=${searchQuery}&lang=${language}`);
         const json = await res.json();
         if (json.success) setSearchResults(json.data);
       } catch (err) {}
@@ -79,7 +79,7 @@ export function TopNavbar() {
     }, 400);
 
     return () => { if (searchTimeout.current) clearTimeout(searchTimeout.current); };
-  }, [searchQuery]);
+  }, [searchQuery, language]);
 
   return (
     <header className="h-16 bg-card border-b border-white/[0.05] flex items-center justify-between px-6 sticky top-0 z-40 backdrop-blur-md bg-card/80">
@@ -92,7 +92,7 @@ export function TopNavbar() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search stocks: RELIANCE, TCS..."
+            placeholder={t('search_placeholder')}
             className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none flex-1"
           />
           {isSearching ? (
@@ -110,7 +110,11 @@ export function TopNavbar() {
             {searchResults.map((s) => (
               <button
                 key={s.symbol}
-                onClick={() => { setSearchQuery(""); setSearchResults([]); }}
+                onClick={() => { 
+                  setSearchQuery(""); 
+                  setSearchResults([]); 
+                  navigate(`/?symbol=${s.symbol}`);
+                }}
                 className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 transition-colors text-left"
               >
                 <div>
@@ -127,10 +131,10 @@ export function TopNavbar() {
       {/* Right section */}
       <div className="flex items-center gap-4">
         {/* Market Status */}
-        <div className={`hidden sm:flex items-center gap-2 border rounded-lg px-3 py-1.5 transition-all ${marketStatus.is_open ? 'bg-profit/5 border-profit/10' : 'bg-muted/10 border-white/5'}`}>
+          <div className={`hidden sm:flex items-center gap-2 border rounded-lg px-3 py-1.5 transition-all ${marketStatus.is_open ? 'bg-profit/5 border-profit/10' : 'bg-muted/10 border-white/5'}`}>
           <div className={`w-1.5 h-1.5 rounded-full ${marketStatus.is_open ? 'bg-profit animate-pulse' : 'bg-muted-foreground'}`} />
           <span className={`text-[10px] font-black uppercase tracking-widest ${marketStatus.is_open ? 'text-profit' : 'text-muted-foreground'}`}>
-            Market {marketStatus.status}
+            {marketStatus.is_open ? t('market_open') : t('market_closed')}
           </span>
           {marketStatus.is_open && <TrendingUp className="w-3 h-3 text-profit" />}
         </div>
@@ -150,7 +154,7 @@ export function TopNavbar() {
           {notifOpen && (
             <div className="absolute right-0 mt-2 w-80 bg-card border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in duration-200">
               <div className="px-4 py-3 border-b border-white/5 bg-accent/30 flex justify-between items-center">
-                <h3 className="text-xs font-black text-white uppercase tracking-widest">Notifications</h3>
+                <h3 className="text-xs font-black text-white uppercase tracking-widest">{t('notifications')}</h3>
                 <span className="text-[10px] text-muted-foreground">{notifications.filter(n => !n.read).length} Unread</span>
               </div>
               <div className="max-h-80 overflow-y-auto">
@@ -191,7 +195,7 @@ export function TopNavbar() {
           {langMenuOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-card border border-white/10 rounded-xl shadow-2xl p-1.5 z-50 animate-in fade-in zoom-in duration-200">
               <div className="px-3 py-2 border-b border-white/5 mb-1 bg-white/[0.02] rounded-t-lg">
-                <p className="text-[9px] font-black text-gold uppercase tracking-widest">Select Language</p>
+                <p className="text-[9px] font-black text-gold uppercase tracking-widest">{t('select_language')}</p>
               </div>
               <div className="grid grid-cols-1 gap-1">
                 {(['English', 'Hindi', 'Gujarati', 'Marathi', 'Bengali', 'Kannada', 'Tamil', 'Telugu'] as Language[]).map((lang) => (
@@ -228,7 +232,7 @@ export function TopNavbar() {
           {userMenuOpen && (
             <div className="absolute right-0 mt-2 w-56 bg-card border border-white/10 rounded-xl shadow-2xl p-1.5 animate-in fade-in zoom-in duration-200">
               <div className="px-3 py-3 border-b border-white/5 mb-1 bg-white/[0.02] rounded-t-lg">
-                <p className="text-[9px] font-black text-gold uppercase tracking-[0.2em]">Trading Account</p>
+                <p className="text-[9px] font-black text-gold uppercase tracking-[0.2em]">{t('trading_account')}</p>
                 <p className="text-xs font-bold text-white truncate mt-0.5">{user?.email || "Premium Trader"}</p>
               </div>
               <button 
@@ -236,14 +240,14 @@ export function TopNavbar() {
                 className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-medium text-muted-foreground hover:text-white hover:bg-white/5 rounded-lg transition-colors"
               >
                 <SettingsIcon className="w-3.5 h-3.5" />
-                <span>Account Settings</span>
+                <span>{t('account_settings')}</span>
               </button>
               <button 
                 onClick={() => { signOut(); setUserMenuOpen(false); }}
                 className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-medium text-crimson hover:bg-crimson/10 rounded-lg transition-colors mt-1"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                <span>Sign Out</span>
+                <span>{t('logout')}</span>
               </button>
             </div>
           )}

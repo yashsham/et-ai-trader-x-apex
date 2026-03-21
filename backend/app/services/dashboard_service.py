@@ -157,9 +157,9 @@ class DashboardService:
         cache_service.set(cache_key, payload, expire_seconds=60)   # 60s TTL
         return payload
 
-    def get_market_sentiment(self):
+    def get_market_sentiment(self, language: str = "English"):
         """Fetch news and calculate sentiment gauge score (0-100). 60s cache."""
-        cache_key = "dashboard_market_sentiment"
+        cache_key = f"dashboard_market_sentiment_{language}"
         cached = cache_service.get(cache_key)
         if cached: return cached
 
@@ -194,6 +194,10 @@ class DashboardService:
                 label = "Bearish"
                 reasoning = "Negative sentiment prevailing due to market volatility."
 
+            from app.services.translation_service import translation_service
+            if language != "English":
+                reasoning = translation_service.translate(reasoning, language)
+
             res = {
                 "score": score, 
                 "label": label, 
@@ -207,7 +211,7 @@ class DashboardService:
             print(f"[Dashboard] get_market_sentiment error: {e}")
             return {"score": 50, "label": "Neutral", "reasoning": "Error calculating sentiment"}
 
-    def get_market_news(self):
+    def get_market_news(self, language: str = "English"):
         """Fetch the latest live news for the broader market"""
         try:
             news = market_service.get_news("Indian Stock Market Nifty")
@@ -225,6 +229,11 @@ class DashboardService:
                 if i % 3 == 0: impact = "High"
                 elif i % 5 == 0: impact = "Low"
 
+                from app.services.translation_service import translation_service
+                if language != "English":
+                    title = translation_service.translate(title, language)
+                    desc = translation_service.translate(desc, language)
+
                 formatted.append({
                     "id": i + 1,
                     "headline": title,
@@ -239,7 +248,7 @@ class DashboardService:
             print(f"[Dashboard] get_market_news error: {e}")
             return []
 
-    def get_live_portfolio(self):
+    def get_live_portfolio(self, language: str = "English"):
         """Fetch holdings from DB and live current prices via yfinance"""
         try:
             from app.services.db_service import db_service
@@ -327,6 +336,12 @@ class DashboardService:
                 insights.append({"type": "suggestion", "text": f"Portfolio drawdown at {total_change_pct:.1f}%. Look for tax-loss harvesting."})
             else:
                 insights.append({"type": "suggestion", "text": "Portfolio is relatively flat, good time to accumulate cash-rich assets."})
+
+            # ── DYNAMIC TRANSLATION ──
+            if language != "English":
+                from app.services.translation_service import translation_service
+                for insight in insights:
+                    insight["text"] = translation_service.translate(insight["text"], language)
 
             return {
                 "holdings": live_holdings,
@@ -430,9 +445,9 @@ class DashboardService:
             "server_time": now_ist.isoformat()
         }
 
-    def search_stocks(self, query: str):
+    def search_stocks(self, query: str, lang: str = "English"):
         """Search for stocks via DB service."""
-        return db_service.search_symbols(query)
+        return db_service.search_symbols(query, lang)
 
     def trigger_test_notifications(self, user_id: str):
         """Seed some dummy notifications if the user is new."""
@@ -445,9 +460,9 @@ class DashboardService:
             db_service.create_notification(user_id, n["message"], n["type"])
         return True
 
-    def get_dashboard_summary(self):
+    def get_dashboard_summary(self, language: str = "English"):
         """Synthesize all dashboard data into an AI executive summary. 5-min cache."""
-        cache_key = "dashboard_executive_summary"
+        cache_key = f"dashboard_executive_summary_{language}"
         cached = cache_service.get(cache_key)
         if cached: return cached
 
@@ -455,12 +470,13 @@ class DashboardService:
             context = {
                 "overview": self.get_market_overview(),
                 "movers": self.get_top_movers(),
-                "sentiment": self.get_market_sentiment(),
-                "news": self.get_market_news(),
+                "sentiment": self.get_market_sentiment(language=language),
+                "news": self.get_market_news(language=language),
                 "watchlist": self.get_watchlist_summary()
             }
             
-            crew = DashboardCrew(context)
+            from app.crew.dashboard_orchestrator import DashboardCrew
+            crew = DashboardCrew(context, language=language)
             result = crew.run()
             
             # Determine priority section to highlight

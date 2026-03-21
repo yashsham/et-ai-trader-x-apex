@@ -9,24 +9,28 @@ import { AgentsActivity } from "@/components/dashboard/AgentsActivity";
 import { AutoAnalyzeEngine } from "@/components/dashboard/AutoAnalyzeEngine";
 import { Watchlist } from "@/components/dashboard/Watchlist";
 import { AnalysisHistory } from "@/components/dashboard/AnalysisHistory";
+import { ExecutiveSummaryCard } from "@/components/dashboard/ExecutiveSummaryCard";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Dashboard = () => {
+  const { t } = useLanguage();
   return (
     <AppLayout>
       <div className="space-y-10 animate-fade-in max-w-7xl mx-auto">
         <AIDecisionStrip />
         <div className="flex items-center gap-2 mb-2 group">
-          <span className="demo-step-badge animate-pulse">Phase 1</span>
-          <span className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] group-hover:text-gold transition-colors">ET AI Trader X: Live Stream</span>
+          <span className="demo-step-badge animate-pulse">{t('phase')} 1</span>
+          <span className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.2em] group-hover:text-gold transition-colors">{t('live_stream')}</span>
         </div>
         
         <section className="space-y-12 mb-16 relative">
           <div className="absolute -left-8 top-0 hidden xl:block">
             <div className="flex flex-col items-center gap-2">
-              <span className="demo-step-badge rotate-90 origin-left mt-8">Phase 2</span>
+              <span className="demo-step-badge rotate-90 origin-left mt-8">{t('phase')} 2</span>
               <div className="w-[1px] h-32 bg-gradient-to-b from-gold/50 to-transparent" />
             </div>
           </div>
+          <ExecutiveSummaryCard />
           <HeroSection />
           <AgentsActivity />
         </section>
@@ -43,12 +47,12 @@ const Dashboard = () => {
           
           <div className="text-center mb-16 relative z-10">
             <div className="inline-flex items-center gap-2 mb-4">
-              <span className="demo-step-badge">Phase 3</span>
-              <span className="text-[10px] font-black uppercase text-gold tracking-widest">Execute Decision Agent</span>
+              <span className="demo-step-badge">{t('phase')} 3</span>
+              <span className="text-[10px] font-black uppercase text-gold tracking-widest">{t('decision_agent')}</span>
             </div>
-            <h2 className="text-4xl font-black text-white mb-4 font-display tracking-tight uppercase italic drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">Autonomous Market Reasoning</h2>
+            <h2 className="text-4xl font-black text-white mb-4 font-display tracking-tight uppercase italic drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">{t('autonomous_reasoning')}</h2>
             <p className="text-muted-foreground text-base max-w-2xl mx-auto font-medium opacity-80 leading-relaxed">
-              Engage the multi-agent swarm to detect institutional flow and high-conviction breakout patterns <span className="text-white underline decoration-gold/40 underline-offset-4">before they hit the mainstream.</span>
+              {t('autonomous_desc')} <span className="text-white underline decoration-gold/40 underline-offset-4">{t('mission_sub')}</span>
             </p>
           </div>
           <div className="relative z-10">

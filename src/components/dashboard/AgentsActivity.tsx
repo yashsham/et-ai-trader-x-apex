@@ -1,34 +1,37 @@
 import { motion } from "framer-motion";
 import { Radar, Brain, Zap, Activity } from "lucide-react";
-
-const agents = [
-  {
-    name: "Radar Agent",
-    icon: Radar,
-    status: "Scanning",
-    color: "text-blue-400",
-    bg: "bg-blue-400/10",
-    description: "Scanning 5,000+ assets for volume breakouts and news catalysts.",
-  },
-  {
-    name: "Decision Agent",
-    icon: Brain,
-    status: "Reasoning",
-    color: "text-gold",
-    bg: "bg-gold/10",
-    description: "Synthesizing technical signals with fundamental sentiment analysis.",
-  },
-  {
-    name: "Action Agent",
-    icon: Zap,
-    status: "Ready",
-    color: "text-crimson",
-    bg: "bg-crimson/10",
-    description: "Executing precise entry/exit strategies based on risk parameters.",
-  },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function AgentsActivity() {
+  const { t } = useLanguage();
+  
+  const agents = [
+    {
+      name: t('radar'),
+      icon: Radar,
+      status: t('scanning_assets').replace('...', ''),
+      color: "text-blue-400",
+      bg: "bg-blue-400/10",
+      description: t('autonomous_desc'), // Generic for now, or use specific if added
+    },
+    {
+      name: t('decision_agent'),
+      icon: Brain,
+      status: t('analyzing_flow').replace('...', ''),
+      color: "text-gold",
+      bg: "bg-gold/10",
+      description: t('mission_sub'),
+    },
+    {
+      name: t('trader'),
+      icon: Zap,
+      status: t('optimal'),
+      color: "text-crimson",
+      bg: "bg-crimson/10",
+      description: t('autonomous_reasoning'),
+    },
+  ];
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {agents.map((agent, index) => (

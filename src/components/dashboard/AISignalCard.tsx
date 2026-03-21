@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Eye, Plus, TrendingUp, TrendingDown, ShieldAlert, Zap } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface SignalData {
   id: number | string;
@@ -71,6 +72,7 @@ interface AISignalCardProps {
 }
 
 export function AISignalCard({ data, onViewTradePlan, index = 0 }: AISignalCardProps) {
+  const { t } = useLanguage();
   const config = signalConfig[data.signal] || signalConfig.Volume;
   const isPositive = data.expectedMove >= 0;
 
@@ -143,12 +145,12 @@ export function AISignalCard({ data, onViewTradePlan, index = 0 }: AISignalCardP
               className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-crimson/20 border border-crimson/40 mb-4 shadow-lg shadow-crimson/20"
             >
               <Zap className="w-4 h-4 text-crimson fill-crimson animate-pulse" />
-              <span className="text-[10px] font-black text-crimson uppercase tracking-[0.2em]">🔥 High Conviction Signal</span>
+              <span className="text-[10px] font-black text-crimson uppercase tracking-[0.2em]">🔥 {t('high_conviction_signal')}</span>
             </motion.div>
           )}
           
           <span className="text-[11px] uppercase tracking-[0.4em] text-muted-foreground block mb-2 font-black opacity-60">
-            Projected Return
+            {t('projected_return')}
           </span>
           
           <motion.div
@@ -180,7 +182,7 @@ export function AISignalCard({ data, onViewTradePlan, index = 0 }: AISignalCardP
         {/* Confidence Bar */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] uppercase tracking-widest text-muted-foreground">AI Confidence</span>
+            <span className="text-[10px] uppercase tracking-widest text-muted-foreground">{t('ai_confidence')}</span>
             <span className="font-mono-data text-sm font-bold text-gold">{data.confidence}%</span>
           </div>
           <div className="h-2 rounded-full bg-accent overflow-hidden">
@@ -202,10 +204,10 @@ export function AISignalCard({ data, onViewTradePlan, index = 0 }: AISignalCardP
           <div className="flex items-center gap-1.5">
             <ShieldAlert className="w-3 h-3 text-muted-foreground" />
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${riskColors[data.risk]}`}>
-              {data.risk} Risk
+              {t(data.risk.toLowerCase() as any)} {t('risk_label')}
             </span>
           </div>
-          <span className="text-[10px] text-muted-foreground">Vol: {data.volume}</span>
+          <span className="text-[10px] text-muted-foreground">{t('volume')}: {data.volume}</span>
         </div>
 
         {/* AI Explanation */}
@@ -222,7 +224,7 @@ export function AISignalCard({ data, onViewTradePlan, index = 0 }: AISignalCardP
             className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[hsl(var(--crimson))] text-primary-foreground text-xs font-bold hover:shadow-[0_0_20px_-3px_hsl(var(--crimson)/0.6)] transition-shadow duration-300"
           >
             <Eye className="w-3.5 h-3.5" />
-            View Trade Plan
+            {t('view_trade_plan')}
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.05 }}

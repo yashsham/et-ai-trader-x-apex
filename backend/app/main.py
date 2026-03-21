@@ -264,9 +264,9 @@ def get_market_status():
     return create_success_response(dashboard_service.get_market_status())
 
 @app.get("/api/v1/search/stocks")
-def search_stocks(q: str):
+def search_stocks(q: str, lang: str = "English"):
     """Search for stock symbols."""
-    results = dashboard_service.search_stocks(q)
+    results = dashboard_service.search_stocks(q, lang)
     return create_success_response(results)
 
 @app.get("/api/v1/notifications")
@@ -286,6 +286,15 @@ def mark_notification_read(notification_id: str):
     return create_success_response({"success": success})
 
 # ── Dashboard Routes ──────────────────────────────────────────────
+@app.get("/api/v1/dashboard/summary", response_model=StandardResponse)
+def get_dashboard_summary(lang: str = "English"):
+    """AI Executive Summary for the dashboard."""
+    try:
+        data = dashboard_service.get_dashboard_summary(language=lang)
+        return create_success_response(data)
+    except Exception as e:
+        return create_error_response(str(e))
+
 @app.get("/api/v1/market/overview")
 def get_market_overview():
     data = dashboard_service.get_market_overview()
@@ -299,16 +308,16 @@ def get_market_movers():
     return create_success_response(data)
 
 @app.get("/api/v1/market/sentiment")
-def get_market_sentiment():
-    data = dashboard_service.get_market_sentiment()
+def get_market_sentiment(lang: str = "English"):
+    data = dashboard_service.get_market_sentiment(language=lang)
     return create_success_response(data)
 
 # ── Market News Routes ──────────────────────────────────────────
 @app.get("/api/v1/market/news", response_model=StandardResponse)
-async def get_raw_market_news(symbol: Optional[str] = None):
+async def get_raw_market_news(symbol: Optional[str] = None, lang: str = "English"):
     """Fetch AI-curated market news."""
     try:
-        data = await news_intelligence_service.get_curated_news(symbol=symbol)
+        data = await news_intelligence_service.get_curated_news(symbol=symbol, language=lang)
         return create_success_response(data)
     except Exception as e:
         return create_error_response(str(e))
@@ -323,11 +332,11 @@ def get_trending_news_themes():
         return create_error_response(str(e))
 
 @app.get("/api/v1/market/news/impact", response_model=StandardResponse)
-async def get_high_impact_news():
+async def get_high_impact_news(lang: str = "English"):
     """Filter for only high-impact breaking news."""
     try:
-        data = await news_intelligence_service.get_curated_news()
-        high_impact = [n for n in data if n["impact_label"] == "High"]
+        data = await news_intelligence_service.get_curated_news(language=lang)
+        high_impact = [n for n in data if n["impact"] == "High"]
         return create_success_response(high_impact)
     except Exception as e:
         return create_error_response(str(e))
@@ -342,10 +351,10 @@ async def get_news_story_arcs():
     ])
 
 @app.get("/api/v1/market/news/search", response_model=StandardResponse)
-async def search_market_news(q: str):
+async def search_market_news(q: str, lang: str = "English"):
     """Search for specific news topics across sources."""
     try:
-        data = await news_intelligence_service.get_curated_news(query=q)
+        data = await news_intelligence_service.get_curated_news(query=q, language=lang)
         return create_success_response(data)
     except Exception as e:
         return create_error_response(str(e))
@@ -359,14 +368,14 @@ async def run_radar_scan(request: RadarScanRequest):
     return create_success_response(results, source_metadata={"source": "OpportunityRadar"})
 
 @app.get("/api/v1/radar/live")
-def get_live_radar():
+def get_live_radar(lang: str = "English"):
     """Fetch high-conviction opportunities from recent history."""
-    data = radar_service.get_live_radar() # Currently proxies to recent
+    data = radar_service.get_live_radar(language=lang)
     return create_success_response(data)
 
 @app.get("/api/v1/radar/history")
-def get_radar_history(limit: int = 20):
-    data = db_service.get_all_analyses(limit=limit)
+def get_radar_history(limit: int = 20, lang: str = "English"):
+    data = radar_service.get_live_radar(limit=limit, language=lang)
     return create_success_response(data)
 
 @app.get("/api/v1/radar/{symbol}")
@@ -390,10 +399,10 @@ async def scan_watchlist():
 
 # ── PORTFOLIO BRAIN ENDPOINTS ──────────────────────────────────
 @app.get("/api/v1/portfolio", response_model=StandardResponse)
-async def get_portfolio():
+async def get_portfolio(lang: str = "English"):
     """Fetch live portfolio valuation and holdings."""
     try:
-        data = portfolio_brain_service.get_portfolio_summary()
+        data = dashboard_service.get_live_portfolio(language=lang)
         return create_success_response(data)
     except Exception as e:
         return create_error_response(str(e))
@@ -438,9 +447,9 @@ async def analyze_portfolio(user_id: Optional[str] = "default_user", language: s
         return create_error_response(str(e))
 
 @app.get("/api/v1/portfolio/summary", response_model=StandardResponse)
-async def get_portfolio_summary():
+async def get_portfolio_summary(lang: str = "English"):
     """Alias for full AI analysis and summary."""
-    return await analyze_portfolio()
+    return await portfolio_brain_service.analyze_portfolio(language=lang)
 
 @app.get("/api/v1/portfolio/rebalance", response_model=StandardResponse)
 async def get_rebalance_suggestions():
@@ -461,31 +470,14 @@ async def get_rebalance_suggestions():
 
 @app.post("/api/v1/chat/stream")
 async def chat_stream(request: ChatRequest):
-    """SSE Streaming for real-time market insights."""
+    """SSE Streaming for real-time market insights with dynamic translation."""
     from fastapi.responses import StreamingResponse
-    import json
-    import asyncio
-
-    async def stream_generator():
-        # Simulated streaming from the ChatService logic
-        # In a real app, CrewAI process would be called in a background task
-        # and tokens piped to this generator.
-        tokens = [
-            f"Analysing '{request.query}'... ",
-            "Checking live data from yfinance... ",
-            "Retrieving market knowledge from LlamaIndex... ",
-            "Compliance checks passed. ",
-            "\n\n",
-            "Based on the data, the mood in the market is balanced. ",
-            "Stay cautious but observant. ",
-            "Citing grounded sources: NewsAPI, yfinance."
-        ]
-        for token in tokens:
-            yield f"data: {json.dumps({'token': token})}\n\n"
-            await asyncio.sleep(0.3)
-        yield "data: [DONE]\n\n"
-
-    return StreamingResponse(stream_generator(), media_type="text/event-stream")
+    from app.services.chat_service import chat_service
+    
+    return StreamingResponse(
+        chat_service.stream_chat(request.query, user_id=request.symbol or "default", language=request.language),
+        media_type="text/event-stream"
+    )
 
 # ── SETTINGS & PREFERENCES ENDPOINTS ──────────────────────────
 @app.get("/api/v1/settings", response_model=StandardResponse)
@@ -567,4 +559,6 @@ def get_cache_stats():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import os
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

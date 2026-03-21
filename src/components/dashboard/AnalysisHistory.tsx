@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { getAllAnalyses, AnalysisResult } from "@/lib/supabase";
 import { History, Activity, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function AnalysisHistory() {
+  const { t } = useLanguage();
   const [history, setHistory] = useState<AnalysisResult[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -36,7 +38,7 @@ export function AnalysisHistory() {
       <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-4">
         <div className="flex items-center gap-3">
           <History className="w-6 h-6 text-gold" />
-          <h3 className="font-display font-bold text-lg text-white">Analysis History</h3>
+          <h3 className="font-display font-bold text-lg text-white">{t('analysis_history')}</h3>
         </div>
       </div>
 
@@ -48,7 +50,7 @@ export function AnalysisHistory() {
         ) : history.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-muted-foreground text-sm opacity-60">
             <History className="w-8 h-8 mb-2 opacity-20" />
-            No past analyses found.<br />Run a scan to generate history!
+            {t('no_history_found')}<br />{t('run_scan_gen_history')}
           </div>
         ) : (
           history.map((record) => (

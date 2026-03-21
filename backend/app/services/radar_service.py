@@ -107,11 +107,39 @@ class RadarService:
         ranked = sorted(results, key=lambda x: x.get("confidence", 0), reverse=True)
         return ranked
 
-    def get_live_radar(self, limit=10):
-        """Fetch the most recent high-conviction results from history."""
-        # For now, proxy to history filtered by conviction if possible,
-        # or just recent analyses.
+    def get_live_radar(self, limit=10, language: str = "English"):
+        """Fetch the most recent high-conviction results from history and translate on-the-fly."""
         data = db_service.get_all_analyses(limit=limit)
+        
+        if language == "English":
+            return data
+            
+        from app.services.translation_service import translation_service
+        for item in data:
+            # The reasoning/explanation might be in decision_output
+            content = item.get("decision_output", "")
+            if content:
+                # If it's JSON-like, try to extract the reasoning
+                try:
+                    import json
+                    import re
+                    json_match = re.search(r'\{[\s\S]*\}', content)
+                    if json_match:
+                        parsed = json.loads(json_match.group())
+                        reasoning = parsed.get("reasoning") or parsed.get("explanation")
+                        if reasoning:
+                            translated = translation_service.translate(reasoning, language)
+                            # Update the reasoning in the JSON and put it back
+                            if "reasoning" in parsed: parsed["reasoning"] = translated
+                            else: parsed["explanation"] = translated
+                            item["decision_output"] = json.dumps(parsed)
+                        continue
+                except:
+                    pass
+                
+                # If not JSON or parsing failed, translate the whole block
+                item["decision_output"] = translation_service.translate(content, language)
+                
         return data
 
 radar_service = RadarService()

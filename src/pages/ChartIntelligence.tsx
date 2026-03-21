@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { BookmarkPlus, Zap, Loader2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { TradePlanModal } from "@/components/dashboard/TradePlanModal";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ChartData {
   date: string;
@@ -25,6 +26,7 @@ interface Analysis {
 }
 
 const ChartIntelligence = () => {
+  const { t } = useLanguage();
   const [symbol, setSymbol] = useState("RELIANCE.NS");
   const [searchInput, setSearchInput] = useState("RELIANCE.NS");
   const [chartData, setChartData] = useState<ChartData[]>([]);
@@ -38,7 +40,7 @@ const ChartIntelligence = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/charts/${targetSymbol}?period=${tf}`);
+      const res = await fetch(`${API_BASE_URL}/api/v1/charts/${targetSymbol}?period=${tf}&lang=${language}`);
       if (!res.ok) {
         throw new Error(await res.text());
       }
@@ -131,7 +133,7 @@ const ChartIntelligence = () => {
               Chart Intelligence
               {loading && <Loader2 className="w-5 h-5 animate-spin text-gold" />}
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">Real-time AI-powered technical analysis</p>
+            <p className="text-sm text-muted-foreground mt-1">{t('intelligence_desc')}</p>
           </div>
           
           <div className="flex items-center gap-2">
@@ -151,7 +153,7 @@ const ChartIntelligence = () => {
               className="flex items-center gap-2 px-4 py-2 h-9 rounded-lg bg-accent text-foreground text-xs font-semibold hover:bg-muted transition-colors"
             >
               <BookmarkPlus className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Add to Watchlist</span>
+              <span className="hidden sm:inline">{t('add_to_watchlist')}</span>
             </button>
           </div>
         </div>
@@ -262,7 +264,7 @@ const ChartIntelligence = () => {
                 <div className="w-6 h-6 rounded gradient-crimson-gold flex items-center justify-center shadow-[0_0_10px_rgba(255,215,0,0.3)]">
                   <Zap className="w-3 h-3 text-foreground" />
                 </div>
-                <span className="text-sm font-semibold text-foreground">AI Intelligence</span>
+                <span className="text-sm font-semibold text-foreground">{t('ai_intelligence')}</span>
               </div>
             </div>
 
@@ -270,35 +272,35 @@ const ChartIntelligence = () => {
               <div className="p-3 rounded-lg bg-accent/50 border border-white/5 relative overflow-hidden group">
                 <div className="absolute top-0 left-0 w-1 h-full gradient-crimson-gold opacity-50 group-hover:opacity-100 transition-opacity"></div>
                 <p className="text-xs text-muted-foreground leading-relaxed font-editorial italic ml-2">
-                  {analysis?.explanation || "Awaiting AI Analysis..."}
+                  {analysis?.explanation || t('awaiting_ai_analysis')}
                 </p>
               </div>
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-xs p-2 rounded hover:bg-white/5 transition-colors">
-                  <span className="text-muted-foreground">Trend Output</span>
+                  <span className="text-muted-foreground">{t('trend_output')}</span>
                   <span className={`font-semibold ${analysis?.trend?.includes("Bullish") ? "text-profit" : analysis?.trend?.includes("Bearish") ? "text-loss" : "text-gold"}`}>
                     {analysis?.trend || "..."}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-xs p-2 rounded hover:bg-white/5 transition-colors">
-                  <span className="text-muted-foreground">Support Floor</span>
+                  <span className="text-muted-foreground">{t('support_floor')}</span>
                   <span className="font-mono-data text-foreground">₹{analysis?.support?.toFixed(1) || "..."}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs p-2 rounded hover:bg-white/5 transition-colors">
-                  <span className="text-muted-foreground">Resistance Ceiling</span>
+                  <span className="text-muted-foreground">{t('resistance_ceiling')}</span>
                   <span className="font-mono-data text-foreground">₹{analysis?.resistance?.toFixed(1) || "..."}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs p-2 rounded bg-gold/5 border border-gold/10">
-                  <span className="text-gold font-medium">AI Price Target</span>
+                  <span className="text-gold font-medium">{t('ai_price_target')}</span>
                   <span className="font-mono-data text-gold font-bold">₹{analysis?.target?.toFixed(1) || "..."}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs p-2 rounded bg-loss/5 border border-loss/10">
-                  <span className="text-loss font-medium">Auto Stop-Loss</span>
+                  <span className="text-loss font-medium">{t('auto_stop_loss')}</span>
                   <span className="font-mono-data text-loss font-bold">₹{analysis?.stop_loss?.toFixed(1) || "..."}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs p-2 rounded hover:bg-white/5 transition-colors">
-                  <span className="text-muted-foreground">Risk/Reward Est.</span>
+                  <span className="text-muted-foreground">{t('risk_reward_est')}</span>
                   <span className="font-mono-data text-foreground font-semibold">{analysis?.risk_reward || "..."}</span>
                 </div>
               </div>
@@ -310,7 +312,7 @@ const ChartIntelligence = () => {
               disabled={!analysis}
             >
               <Zap className="w-4 h-4" />
-              Execute Trade Plan
+              {t('execute_trade_plan')}
             </button>
           </div>
         </div>

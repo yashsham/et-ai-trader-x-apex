@@ -1,5 +1,6 @@
 import { AppLayout } from "@/components/AppLayout";
 import { Play, Video, Clock, Sparkles } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const videos = [
   { id: 1, title: "Nifty 50 Daily Wrap — March 18, 2026", duration: "3:24", status: "ready" },
@@ -8,19 +9,20 @@ const videos = [
 ];
 
 const AIVideoEngine = () => {
+  const { t } = useLanguage();
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold text-foreground">AI Video Engine</h1>
+            <h1 className="font-display text-2xl font-bold text-foreground">{t('video_engine')}</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Auto-generated market analysis videos with AI narration
+              {t('video_desc')}
             </p>
           </div>
           <button className="flex items-center gap-2 px-4 py-2 rounded-lg gradient-crimson-gold text-foreground text-xs font-semibold glow-crimson hover:opacity-90 transition-opacity">
             <Sparkles className="w-3.5 h-3.5" />
-            Generate Today's Video
+            {t('start_visual_sync')}
           </button>
         </div>
 

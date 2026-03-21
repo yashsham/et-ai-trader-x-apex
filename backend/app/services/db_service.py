@@ -314,8 +314,8 @@ class DBService:
             return None
 
     # ── Search ───────────────────────────────────────────────────
-    def search_symbols(self, query: str) -> List[dict]:
-        """Simple symbol search against common Indian stocks."""
+    def search_symbols(self, query: str, lang: str = "English") -> List[dict]:
+        """Simple symbol search against common Indian stocks with translation."""
         # Using a static list for speed, could be a DB table for full coverage.
         TOP_STOCKS = [
             {"symbol": "RELIANCE.NS", "name": "Reliance Industries"},
@@ -332,9 +332,24 @@ class DBService:
             {"symbol": "WIPRO.NS", "name": "Wipro"},
             {"symbol": "ADANIENT.NS", "name": "Adani Enterprises"},
             {"symbol": "JSWSTEEL.NS", "name": "JSW Steel"},
-            {"symbol": "TITAN.NS", "name": "Titan Company"}
+            {"symbol": "TITAN.NS", "name": "Titan Company"},
+            {"symbol": "LT.NS", "name": "Larsen & Toubro"},
+            {"symbol": "M&M.NS", "name": "Mahindra & Mahindra"},
+            {"symbol": "SUNPHARMA.NS", "name": "Sun Pharmaceutical"},
+            {"symbol": "ASIANPAINT.NS", "name": "Asian Paints"},
+            {"symbol": "AXISBANK.NS", "name": "Axis Bank"}
         ]
         q = query.upper()
-        return [s for s in TOP_STOCKS if q in s["symbol"] or q in s["name"].upper()]
+        results = [s for s in TOP_STOCKS if q in s["symbol"] or q in s["name"].upper()]
+        
+        # Translate names if non-English
+        if lang != "English" and results:
+            from app.services.translation_service import translation_service
+            # We copy to avoid mutating the global TOP_STOCKS if it was shared (it's local here but good practice)
+            results = [dict(s) for s in results]
+            for s in results:
+                s["name"] = translation_service.translate(s["name"], lang)
+                
+        return results
 
 db_service = DBService()

@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { getWatchlist, addToWatchlist, removeFromWatchlist, WatchlistItem } from "@/lib/supabase";
 import { Trash2, Plus, RefreshCw, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function Watchlist() {
+  const { t } = useLanguage();
   const [items, setItems] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [newSymbol, setNewSymbol] = useState("");
@@ -50,7 +52,7 @@ export function Watchlist() {
       <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-4">
         <div className="flex items-center gap-3">
           <Eye className="w-6 h-6 text-gold" />
-          <h3 className="font-display font-bold text-lg text-white">Active Watchlist</h3>
+          <h3 className="font-display font-bold text-lg text-white">{t('active_watchlist')}</h3>
         </div>
         <button onClick={loadWatchlist} className="p-2 hover:bg-white/5 rounded-lg transition-colors group">
           <RefreshCw className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors" />
@@ -62,7 +64,7 @@ export function Watchlist() {
           type="text"
           value={newSymbol}
           onChange={(e) => setNewSymbol(e.target.value)}
-          placeholder="Add Symbol (e.g. INFY.NS)"
+          placeholder={t('add_symbol_placeholder')}
           className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-gold/50 transition-colors uppercase"
         />
         <button
@@ -82,7 +84,7 @@ export function Watchlist() {
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-32 text-muted-foreground text-sm opacity-60">
             <Eye className="w-8 h-8 mb-2 opacity-20" />
-            Watchlist is empty
+            {t('watchlist_empty')}
           </div>
         ) : (
           items.map((item) => (
@@ -94,7 +96,7 @@ export function Watchlist() {
               <button
                 onClick={() => handleRemove(item.symbol)}
                 className="p-2 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-loss/20 rounded-lg text-loss"
-                title="Remove"
+                title={t('remove')}
               >
                 <Trash2 className="w-4 h-4" />
               </button>

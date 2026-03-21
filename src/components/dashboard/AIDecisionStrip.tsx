@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Zap, ArrowRight, BarChart3, X } from "lucide-react";
 import { API_BASE_URL } from "@/lib/api-config";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function AIDecisionStrip() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [buyCount, setBuyCount] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
@@ -58,8 +60,8 @@ export function AIDecisionStrip() {
             <Zap className="w-5 h-5 text-white fill-current animate-pulse" />
             <span className="text-sm font-bold text-white">
               {isAlert 
-                ? `🔥 AI ALERT: ${buyCount} high-confidence BUY ${buyCount === 1 ? 'opportunity' : 'opportunities'} detected today` 
-                : "⚡ AI PULSE: Monitoring Indian markets for high-confidence breakouts..."}
+                ? (buyCount === 1 ? t('ai_alert_single') : t('ai_alert_msg').replace('{count}', buyCount.toString()))
+                : t('ai_pulse_desc')}
             </span>
           </div>
 
@@ -69,14 +71,14 @@ export function AIDecisionStrip() {
                 onClick={() => navigate("/history")}
                 className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition-all border border-white/10"
               >
-                View Signals →
+                {t('view_signals')}
               </button>
             )}
             <button
               onClick={() => navigate("/radar")}
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/5"
             >
-              <BarChart3 className="w-3.5 h-3.5" /> Auto-Analyze Top Movers
+              <BarChart3 className="w-3.5 h-3.5" /> {t('auto_analyze_movers')}
             </button>
           </div>
         </div>
