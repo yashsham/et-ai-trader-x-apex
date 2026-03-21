@@ -16,7 +16,16 @@ class LLMRouter:
         """
         available_llms = []
 
-        # 1. Groq - High reliability, high speed
+        # 1. Gemini - Primary Powerhouse (discovery showed 2.x and 3.x models)
+        if self.settings.GEMINI_API_KEY:
+             for g_model in ["gemini/gemini-2.0-flash", "gemini/gemini-3-flash-preview", "gemini/gemini-1.5-pro"]:
+                 available_llms.append(LLM(
+                     model=g_model,
+                     api_key=self.settings.GEMINI_API_KEY,
+                     temperature=0.1
+                 ))
+
+        # 2. Groq - High reliability, high speed fallback
         if self.settings.GROQ_API_KEY:
              available_llms.append(LLM(
                  model="groq/llama-3.3-70b-versatile",
@@ -25,15 +34,17 @@ class LLMRouter:
                  timeout=30
              ))
 
-        # 2. Gemini - Efficient fallback
-        if self.settings.GEMINI_API_KEY:
-             available_llms.append(LLM(
-                 model="gemini/gemini-2.0-flash",
-                 api_key=self.settings.GEMINI_API_KEY,
-                 temperature=0.1
-             ))
+        # 3. OpenRouter Free - High Capacity Fallback (120B / 20B MoE)
+        if self.settings.OPENROUTER_API_KEY:
+             for or_model in ["openai/gpt-oss-120b:free", "openai/gpt-oss-20b:free", "meta-llama/llama-3.3-70b-instruct:free"]:
+                 available_llms.append(LLM(
+                     model=or_model,
+                     api_key=self.settings.OPENROUTER_API_KEY,
+                     temperature=0.1,
+                     base_url="https://openrouter.ai/api/v1"
+                 ))
 
-        # 3. OpenAI - Robust backup
+        # 4. OpenAI - Robust secondary backup
         if self.settings.OPENAI_API_KEY:
              available_llms.append(LLM(
                  model="openai/gpt-4o-mini",
