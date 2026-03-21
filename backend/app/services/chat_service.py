@@ -81,9 +81,20 @@ class ChatService:
         from app.chat.router import ChatRouter
         from app.services.translation_service import translation_service
 
-        # 1. Routing (LangChain based)
+        # 1. Immediate Feedback (Real-time feeling)
+        yield f"data: {json.dumps({'token': '🛡️ ET AI Engine: Initializing secure uplink... '})}\n\n"
+        await asyncio.sleep(0.01)
+
+        # 2. Routing (LangChain based) - Now happens after first yield
+        # 2. Routing (LangChain based) - Now happens AFTER first yield
+        from app.chat.router import ChatRouter
         router = ChatRouter(language=language)
-        intent, response_or_trigger = router.route(query)
+        
+        # Temporary status to show we are classification
+        # yield f"data: {json.dumps({'token': 'Routing intelligence request... '})}\n\n"
+        
+        # Blocking call to router (Gemini 2.0 usually fast, but still a round trip)
+        intent, response_or_trigger, symbols = router.route(query)
 
         if intent == "CONVERSATIONAL":
             # Direct response (Fast)
@@ -91,31 +102,44 @@ class ChatService:
             for i, word in enumerate(words):
                 chunk = word + (" " if i < len(words) - 1 else "")
                 yield f"data: {json.dumps({'token': chunk})}\n\n"
-                await asyncio.sleep(0.03) # High speed for greetings
+                await asyncio.sleep(0.02) # High speed for greetings
             yield "data: [DONE]\n\n"
             return
 
-        # 2. Sequential Agentic Flow (For ANALYTICAL intent)
-        # Initial "Thinking" tokens (Thematic)
-        flow_tokens = [
-            "🛡️ Reality Analyst: Gauging market sentiment... ",
-            "🔍 Alpha Searcher: Gathering live pricing data... ",
-            "📊 Strategy Bot: Synthesizing final insights... ",
-            "\n\n---\n"
-        ]
+        # 3. Sequential Agentic Flow (For ANALYTICAL intent)
+        # Pre-translated static thinking tokens to avoid API round trips
+        thinking_map = {
+            "English": [
+                "🛡️ Reality Analyst: Gauging market sentiment... ",
+                "🔍 Alpha Searcher: Gathering live pricing data... ",
+                "📊 Strategy Bot: Synthesizing final insights... ",
+                "\n\n---\n"
+            ],
+            "Hindi": [
+                "🛡️ रियलिटी एनालिस्ट: बाजार की धारणा का आकलन... ",
+                "🔍 अल्फा सर्चर: लाइव प्राइसिंग डेटा एकत्र करना... ",
+                "📊 स्ट्रैटेजी बॉट: अंतिम अंतर्दृष्टि का विश्लेषण... ",
+                "\n\n---\n"
+            ],
+            "Gujarati": [
+                "🛡️ રિયાલિટી એનાલિસ્ટ: બજારની સેન્ટિમેન્ટ તપાસવી... ",
+                "🔍 આલ્ફા સર્ચર: લાઈવ પ્રાઈસીંગ ડેટા ભેગા કરવા... ",
+                "📊 સ્ટ્રેટેજી બોટ: ફાઈનલ આંતરદૃષ્ટિ તૈયાર કરવી... ",
+                "\n\n---\n"
+            ]
+        }
+        
+        flow_tokens = thinking_map.get(language, thinking_map["English"])
         
         for token in flow_tokens:
-            chunk = token
-            if language != "English":
-                chunk = translation_service.translate(token, language)
-            yield f"data: {json.dumps({'token': chunk})}\n\n"
-            await asyncio.sleep(0.3)
+            yield f"data: {json.dumps({'token': token})}\n\n"
+            await asyncio.sleep(0.1) # Snappier sequence
 
         # Run actual Crew
         try:
             loop = asyncio.get_event_loop()
             with ThreadPoolExecutor() as pool:
-                result = await loop.run_in_executor(pool, lambda: ChatbotCrew(query, language=language).run())
+                result = await loop.run_in_executor(pool, lambda: ChatbotCrew(query, language=language, symbols=symbols).run())
             
             # Robust extraction of the response text
             full_response = (

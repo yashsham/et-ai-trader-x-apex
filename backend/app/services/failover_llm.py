@@ -15,51 +15,71 @@ class FailoverLLM:
         self.fallbacks = fallbacks
         self.all_llms = [primary] + fallbacks
         
+        # Circuit Breaker state: {model_name: (failure_count, last_failure_time)}
+        self._circuit_breakers = {}
+        self.cooldown_period = 60 # Seconds
+        self.max_failures = 3
+
         # Metadata required by CrewAI/LiteLLM
         self.model = primary.model
         self.provider = primary.provider
 
+    def _is_broken(self, model_name: str) -> bool:
+        """Check if the circuit breaker for a specific model is open."""
+        if model_name not in self._circuit_breakers:
+            return False
+        
+        failures, last_time = self._circuit_breakers[model_name]
+        if failures >= self.max_failures:
+            if time.time() - last_time < self.cooldown_period:
+                return True
+            else:
+                # Reset circuit on cooldown expiry (Half-Open)
+                logger.info(f"[CircuitBreaker] Cooldown expired for {model_name}. Attempting recovery.")
+                return False
+        return False
+
+    def _record_failure(self, model_name: str):
+        """记录失败并更新熔断状态."""
+        failures, _ = self._circuit_breakers.get(model_name, (0, 0))
+        self._circuit_breakers[model_name] = (failures + 1, time.time())
+        if failures + 1 >= self.max_failures:
+            logger.critical(f"[CircuitBreaker] OPENed for {model_name}. Cooling down.")
+
+    def _record_success(self, model_name: str):
+        """Reset state on success."""
+        if model_name in self._circuit_breakers:
+            del self._circuit_breakers[model_name]
+
     def call(self, *args, **kwargs):
-        """
-        Intercepts the LLM call and implements the retry-with-fallback logic.
-        """
         last_error = None
         
-        print(f"[FailoverLLM] Starting call chain with {len(self.all_llms)} providers")
         for i, llm in enumerate(self.all_llms):
+            # Check circuit breaker
+            if self._is_broken(llm.model):
+                print(f"[FailoverLLM] [Skip] {llm.model} is currently in cooling down phase.")
+                continue
+
             try:
                 print(f"[FailoverLLM] [Attempt {i+1}] Trying {llm.model}...")
-                
-                # CrewAI LLM uses litellm internally. 
-                # We delegate the call to the underlying LLM's call method.
                 res = llm.call(*args, **kwargs)
-                print(f"[FailoverLLM] [Success] Provider: {llm.model}")
+                self._record_success(llm.model)
                 return res
                 
             except Exception as e:
                 last_error = e
+                self._record_failure(llm.model)
                 error_msg = str(e).lower()
-                print(f"[FailoverLLM] [Failure] Provider {llm.model} failed with: {error_msg[:150]}")
+                print(f"[FailoverLLM] [Failure] {llm.model}: {error_msg[:100]}")
                 
-                # Check if it's a transient error that warrants a fallback
-                transient_keywords = ["rate_limit", "429", "authentication", "401", "timeout", "500", "overloaded", "quota", "connection"]
-                if any(x in error_msg for x in transient_keywords) or i < len(self.all_llms) - 1:
-                    print(f"[FailoverLLM] Error detected. Switching to next provider ({i+2}/{len(self.all_llms)})...")
+                if i < len(self.all_llms) - 1:
                     continue
                 else:
                     raise e
-
-    def __call__(self, *args, **kwargs):
-        return self.call(*args, **kwargs)
-
-    def invoke(self, *args, **kwargs):
-        """LangChain compatibility."""
-        return self.call(*args, **kwargs)
         
-        print(f"[FailoverLLM] CRITICAL: All {len(self.all_llms)} providers exhausted.")
         if last_error:
             raise last_error
-        raise Exception("All LLM providers failed and no error caught.")
+        raise Exception("All LLMs skipped or failed.")
 
     # Delegate other attributes to the primary LLM
     def __getattr__(self, name):

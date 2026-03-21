@@ -1,51 +1,64 @@
 from crewai import Crew, Process, Task
 from app.agents.trading_agents import TradingAgents
 from app.chat.tools import financial_data_tool, news_data_tool
+from app.chat.validators import TradingAnalysisSchema
 from app.core.response_normalizer import response_normalizer
 import json
 
 class ChatbotCrew:
-    def __init__(self, query: str, context: dict = {}, language: str = "English"):
+    def __init__(self, query: str, context: dict = {}, language: str = "English", symbols: list = []):
         self.query = query
         self.context = context
+        self.language = language
+        self.symbols = symbols
         self.agents = TradingAgents(language=language)
 
     def run(self):
         # 1. Specialized Agents
+        manager = self.agents.manager_agent()
         router = self.agents.query_router_agent()
         researcher = self.agents.data_agent()
-        analyst = self.agents.signal_agent()
         sentiment_bot = self.agents.sentiment_agent()
         compliance_guard = self.agents.compliance_agent()
-        decision_agent = self.agents.decision_agent() # The Final Decision Agent
+        decision_agent = self.agents.decision_agent() 
 
-        # 2. Sequential Task Flow
+        # 2. Dynamic Task Flow
+        tasks = []
         
-        # Task 1: Identify Query Intent
-        route_task = Task(
-            description=(
-                f"Analyze the user query: '{self.query}'. "
-                "Classify it as 'STOCK_RESEARCH', 'MARKET_NEWS', 'TRADING_CONCEPT', or 'PORTFOLIO_ADVICE'."
-            ),
-            expected_output="A single category label and a list of identified ticker symbols.",
-            agent=router
-        )
+        # symbols_str for tasks
+        symbols_to_work_on = ", ".join(self.symbols) if self.symbols else "the identified symbols"
 
-        # Task 2: Market Data Extraction
+        # Task 1: Identify Query Intent (Only if not provided)
+        if not self.symbols:
+            route_task = Task(
+                description=(
+                    f"Analyze the user query: '{self.query}'. "
+                    "Classify it as 'STOCK_RESEARCH', 'MARKET_NEWS', 'TRADING_CONCEPT', or 'PORTFOLIO_ADVICE'."
+                ),
+                expected_output="A single category label and a list of identified ticker symbols.",
+                agent=router
+            )
+            tasks.append(route_task)
+
+        # Task 2: Market Data Extraction (ASYNCHRONOUS)
         market_task = Task(
-            description="Fetch live prices, volume, and technical context for the identified symbols.",
+            description=f"Fetch live prices, volume, and technical context for {symbols_to_work_on}.",
             expected_output="Detailed fact sheet of live market numbers.",
             agent=researcher,
-            tools=[financial_data_tool]
+            tools=[financial_data_tool],
+            async_execution=True # Run in parallel with news
         )
+        tasks.append(market_task)
 
-        # Task 3: News & Catalyst Analysis
+        # Task 3: News & Catalyst Analysis (ASYNCHRONOUS)
         news_task = Task(
-            description="Search for the latest market-moving news and sentiment for the identified symbols.",
+            description=f"Search for the latest market-moving news and sentiment for {symbols_to_work_on}.",
             expected_output="Sentiment summary and key news catalysts.",
             agent=sentiment_bot,
-            tools=[news_data_tool]
+            tools=[news_data_tool],
+            async_execution=True # Run in parallel with market data
         )
+        tasks.append(news_task)
 
         # Task 4: Compliance Scan
         compliance_task = Task(
@@ -54,39 +67,58 @@ class ChatbotCrew:
                 "without mentioning risk."
             ),
             expected_output="A safety-approved context block with risk disclosures.",
-            agent=compliance_guard
+            agent=compliance_guard,
+            context=[market_task, news_task] # Depends on parallel results
         )
+        tasks.append(compliance_task)
 
         # Task 5: Final Executive Synthesis
         decision_task = Task(
             description=(
-                "Review the entire data chain. Compose a final, premium response to the user's query: '{self.query}'. "
-                "MANDATORY FORMATTING: \n"
-                "### 💎 **CORE MARKET INSIGHT**\n"
-                "[Insight text here]\n\n"
-                "### 📈 **TECHNICAL & SENTIMENT PULSE**\n"
-                "[Analysis here with bullet points]\n\n"
-                "### 🛡️ **RISK GUARD & NEXT STEPS**\n"
-                "[Specific warnings and actions]\n\n"
-                "**BOTTOM LINE:** [Final sharp conclusion]\n"
-                "Maintain a clean, sophisticated look with consistent spacing."
+                f"Review the entire data chain. Compose a final, premium response to the user's query: '{self.query}'. "
+                "Ensure your reasoning is deep and reflects a 40-year veteran perspective. "
+                "Structure your output according to the provided Pydantic schema."
             ),
-            expected_output=f"A visually stunning, bolded markdown report in {self.agents.language}.",
-            agent=decision_agent
+            expected_output=f"A high-conviction, professional trading analysis in {self.language}.",
+            agent=decision_agent,
+            context=[compliance_task],
+            output_pydantic=TradingAnalysisSchema # Production-grade validation
         )
+        tasks.append(decision_task)
 
         # 3. Kickoff
         crew = Crew(
             agents=[router, researcher, sentiment_bot, compliance_guard, decision_agent],
-            tasks=[route_task, market_task, news_task, compliance_task, decision_task],
-            process=Process.sequential,
+            tasks=tasks,
+            process=Process.hierarchical,
+            manager_agent=manager,
+            memory=True,
+            cache=True,
             verbose=True
         )
 
         result = crew.kickoff()
-        raw_result = str(result)
+        
+        # result is now a Pydantic object if we use output_pydantic
+        # We convert it back to a beautiful markdown string for the UI
+        try:
+            if hasattr(result, 'pydantic'):
+                p = result.pydantic
+                raw_result = (
+                    f"### 💎 **THE CORE ALIGNMENT**\n{p.core_insight}\n\n"
+                    f"### 📈 **TECHNICAL & DATA VERTICALS**\n" + 
+                    "\n".join([f"- {b}" for b in p.technical_bullets]) + 
+                    f"\n\n### 🛡️ **RISK SPECTRUM**\n{p.risk_notes}\n\n"
+                    f"**BOTTOM LINE:** {p.bottom_line}"
+                )
+            else:
+                raw_result = str(result)
+        except Exception as e:
+            print(f"[ChatbotCrew] Pydantic parsing error: {e}")
+            raw_result = str(result)
+
         print(f"[ChatbotCrew] Final Result: {raw_result[:100]}...")
         return {
             "explanation": raw_result,
-            "symbols": [] # Symbols can be extracted later if needed
+            "symbols": self.symbols 
         }

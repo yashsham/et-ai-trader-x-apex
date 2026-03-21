@@ -11,28 +11,29 @@ class ChatRouter:
         self.language = language
         self.llm = llm_router.get_router()
 
-    def route(self, query: str) -> Tuple[str, str]:
+    def route(self, query: str) -> Tuple[str, str, list]:
         """
         Routes the query.
-        Returns: (intent, response_or_trigger)
+        Returns: (intent, response_or_trigger, symbols)
         Intents: 'CONVERSATIONAL', 'ANALYTICAL'
         """
         # 1. Catch extremely simple greetings without LLM
         simple_greetings = ["hi", "hello", "hey", "namaste", "good morning", "good evening"]
         if query.lower().strip() in simple_greetings:
-             return "CONVERSATIONAL", self._get_greeting()
+             return "CONVERSATIONAL", self._get_greeting(), []
 
-        # 2. Use LLM to classify intent
+        # 2. Use LLM to classify intent and extract symbols
         prompt = f"""
         Analyze the user query: "{query}"
         
-        Is this a:
-        1. Simple conversation/greeting/general talk/meta-question about you? (Intent: CONVERSATIONAL)
-        2. A request for market data, stock analysis, news, or trading strategy? (Intent: ANALYTICAL)
+        Task:
+        1. Classify Intent: CONVERSATIONAL (chat/meta) or ANALYTICAL (market/stock news/data)
+        2. Extract Ticker Symbols: e.g. ["RELIANCE.NS", "AAPL"]
         
         Respond ONLY in JSON format:
         {{
             "intent": "CONVERSATIONAL" or "ANALYTICAL",
+            "symbols": ["SYMBOL1", "SYMBOL2"],
             "reason": "short explanation"
         }}
         """
@@ -46,16 +47,17 @@ class ChatRouter:
             data = json.loads(json_match.group(1)) if json_match else json.loads(response)
             
             intent = data.get("intent", "ANALYTICAL")
+            symbols = data.get("symbols", [])
             
             if intent == "CONVERSATIONAL":
-                 return "CONVERSATIONAL", self._generate_conversational_response(query)
+                 return "CONVERSATIONAL", self._generate_conversational_response(query), symbols
             
-            return "ANALYTICAL", "[AGENT_TRIGGER]"
+            return "ANALYTICAL", "[AGENT_TRIGGER]", symbols
             
         except Exception as e:
             logger.error(f"[Router] Classification failed: {e}")
             # Fallback to ANALYTICAL to be safe
-            return "ANALYTICAL", "[AGENT_TRIGGER]"
+            return "ANALYTICAL", "[AGENT_TRIGGER]", []
 
     def _get_greeting(self) -> str:
         if self.language.lower() == "hindi":

@@ -10,8 +10,12 @@ class TradingAgents:
         self.language = language
 
     def _make_agent(self, role, goal, backstory):
-        # Inject language instruction into the goal
-        effective_goal = f"{goal}. IMPORTANT: Your total output (reasoning and final answer) MUST be in {self.language} only."
+        # Inject production-grade reasoning and language instructions
+        effective_goal = (
+            f"{goal}. "
+            f"IMPORTANT: Use **Chain of Thought** reasoning. "
+            f"Your total output (reasoning and final answer) MUST be in {self.language} only."
+        )
         if self.language.lower() != "english":
              effective_goal += f" Even Technical terms should be explained in {self.language} for better understanding."
              
@@ -21,28 +25,55 @@ class TradingAgents:
             backstory=backstory,
             llm=self.llm,
             verbose=True,
-            allow_delegation=False
+            allow_delegation=True, # Enabled for hierarchical mode
+            memory=True,          # Enable memory for context awareness
+            cache=True            # Enable native CrewAI caching
+        )
+
+    def manager_agent(self):
+        """The Master Orchestrator (CIO Level)."""
+        return self._make_agent(
+            role="ET AI Principal Investment Manager (CIO)",
+            goal="Synthesize fragmented data into a high-conviction, institutional-grade trading thesis.",
+            backstory=(
+                "A seasoned Chief Investment Officer with 40 years of experience at top-tier global hedge funds. "
+                "You are obsessed with capital preservation and data integrity. Your role is to cross-examine "
+                "the Data Collector and Sentiment Analyst to ensure no 'noisy' data reaches the Executive Strategist."
+            )
         )
 
     def data_agent(self):
+        """Quant Data Expert."""
         return self._make_agent(
-            role="Market Data Collector",
-            goal="Fetch accurate stock price, volume, and recent news data",
-            backstory="Expert in financial data aggregation with 15 years in quant research."
+            role="Lead Quantitative Data Researcher",
+            goal="Fetch and validate high-fidelity price discovery and technical metrics.",
+            backstory=(
+                "A Google-trained AI Engineer specialized in high-frequency financial data. "
+                "You don't just fetch data; you look for anomalies, liquidity gaps, and volume clusters "
+                "that standard retail tools miss."
+            )
         )
 
     def signal_agent(self):
+        """Tactical Signal Analyst."""
         return self._make_agent(
-            role="Technical Analyst AI",
-            goal="Identify high-probability trading signals and breakout patterns",
-            backstory="A wizard of candlestick patterns, RSI, MACD, and Fibonacci levels."
+            role="Senior Technical Alpha Strategist",
+            goal="Identify high-probability, risk-adjusted technical setups and breakout patterns.",
+            backstory=(
+                "A master of the 'Tape Reading' method combined with modern quant indicators. "
+                "You specialize in identifying 'False Breakouts' and 'Bull Traps' to protect capital."
+            )
         )
 
     def sentiment_agent(self):
+        """Behavioral Finance Expert."""
         return self._make_agent(
-            role="Market Sentiment Analyst",
-            goal="Evaluate news sentiment and market mood around specific stocks",
-            backstory="Specializes in NLP and behavioural finance."
+            role="Behavioral Finance & Sentiment Specialist",
+            goal="Deconstruct news narratives to identify hidden market biases and retail euphoria.",
+            backstory=(
+                "An expert in NLP and crowd psychology. You analyze news headlines not for what they say, "
+                "but for the sentiment they are trying to manipulate. You identify 'Contrarian' opportunities."
+            )
         )
 
     def portfolio_agent(self):
@@ -53,20 +84,22 @@ class TradingAgents:
         )
 
     def decision_agent(self):
+        """The Final Voice (Google-scale Precision)."""
         return self._make_agent(
-            role="ET AI Executive Strategist",
+            role="ET AI Principal Executive Strategist",
             goal=(
-                f"Synthesize all intelligence into a **Premium Executive Summary** in {self.language}. "
-                "Use high-impact formatting: \n"
-                "- Bold Headlines with emojis: e.g., '### 💎 **THE CORE INSIGHT**'\n"
-                "- Structured sections: '### 📈 **TECHNICAL ANALYSIS**', '### 🛡️ **RISK VERTICALS**'\n"
-                "- Use bullet points for metrics and **bolding** for emphasis on critical numbers.\n"
-                "- End with a clear, bolded **BOTTOM LINE**.\n"
-                "Ensure the tone is sophisticated, yet highly actionable."
+                f"Synthesize the swarm's analysis into a **Global Standard Premium Report** in {self.language}. "
+                "MANDATORY REPORT STRUCTURE: \n"
+                "1. ### 💎 **THE CORE ALIGNMENT**: A one-sentence conviction summary.\n"
+                "2. ### 📈 **TECHNICAL & DATA VERTICALS**: Deep dive into numbers and patterns.\n"
+                "3. ### 🛡️ **RISK SPECTRUM**: Specific warnings, stop-losses, and hedging needs.\n"
+                "4. **BOTTOM LINE**: Sharp, professional conclusion.\n"
+                "Ensure institutional-grade vocabulary and elegant formatting."
             ),
             backstory=(
-                "A seasoned Chief Investment Officer who demands visual excellence. "
-                "You believe that clear formatting is as important as accurate data for building user trust."
+                "A world-class Financial Architect who has designed systems at Google and Goldman Sachs. "
+                "You believe that intelligence is only as good as its delivery. Your reports are legendary "
+                "for being both mathematically sound and visually stunning."
             )
         )
 
