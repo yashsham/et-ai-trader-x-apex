@@ -102,15 +102,38 @@ class ChatbotCrew:
         # result is now a Pydantic object if we use output_pydantic
         # We convert it back to a beautiful markdown string for the UI
         try:
-            if hasattr(result, 'pydantic'):
+            if hasattr(result, 'pydantic') and result.pydantic:
                 p = result.pydantic
-                raw_result = (
-                    f"### 💎 **THE CORE ALIGNMENT**\n{p.core_insight}\n\n"
-                    f"### 📈 **TECHNICAL & DATA VERTICALS**\n" + 
-                    "\n".join([f"- {b}" for b in p.technical_bullets]) + 
-                    f"\n\n### 🛡️ **RISK SPECTRUM**\n{p.risk_notes}\n\n"
-                    f"**BOTTOM LINE:** {p.bottom_line}"
-                )
+                # New universal schema: always has decision/reasoning
+                decision_badge = f"**{p.decision}**" if p.decision else "**HOLD**"
+                
+                # Build sections from whichever fields are available
+                sections = [f"### 🎯 **SIGNAL: {decision_badge}**\n"]
+                
+                if p.reasoning:
+                    sections.append(f"### 💎 **CORE REASONING**\n{p.reasoning}\n")
+                elif p.core_insight:
+                    sections.append(f"### 💎 **THE CORE ALIGNMENT**\n{p.core_insight}\n")
+                
+                if p.technical_bullets:
+                    sections.append("### 📈 **TECHNICAL & DATA VERTICALS**\n" + 
+                        "\n".join([f"- {b}" for b in p.technical_bullets]) + "\n")
+                
+                # Add key levels
+                if p.entry or p.target or p.stop_loss:
+                    levels = []
+                    if p.entry: levels.append(f"**Entry:** {p.entry}")
+                    if p.target: levels.append(f"**Target:** {p.target}")
+                    if p.stop_loss: levels.append(f"**Stop Loss:** {p.stop_loss}")
+                    sections.append("### 📊 **KEY LEVELS**\n" + "  |  ".join(levels) + "\n")
+                
+                if p.risk_notes:
+                    sections.append(f"### 🛡️ **RISK SPECTRUM**\n{p.risk_notes}\n")
+                
+                if p.bottom_line:
+                    sections.append(f"**BOTTOM LINE:** {p.bottom_line}")
+                    
+                raw_result = "\n".join(sections)
             else:
                 raw_result = str(result)
         except Exception as e:

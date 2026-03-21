@@ -32,9 +32,10 @@ class CacheService:
         self.hits += 1
         return item["value"]
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None):
+    def set(self, key: str, value: Any, ttl: Optional[int] = None, expire_seconds: Optional[int] = None):
         """Store a value with a specific or default TTL."""
-        expiry = time.time() + (ttl or self.default_ttl)
+        final_ttl = expire_seconds if expire_seconds is not None else ttl
+        expiry = time.time() + (final_ttl or self.default_ttl)
         self._cache[key] = {
             "value": value,
             "expiry": expiry

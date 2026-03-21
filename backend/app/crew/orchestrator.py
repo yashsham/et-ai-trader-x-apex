@@ -17,6 +17,7 @@ class TradingCrew:
 
     def run(self):
         # Initialize Agents
+        manager = self.agents.manager_agent()
         data_agent = self.agents.data_agent()
         signal_agent = self.agents.signal_agent()
         sentiment_agent = self.agents.sentiment_agent()
@@ -34,37 +35,42 @@ class TradingCrew:
         crew = Crew(
             agents=[data_agent, signal_agent, sentiment_agent, portfolio_agent, decision_agent],
             tasks=[data_task, signal_task, sentiment_task, portfolio_task, decision_task],
-            process=Process.sequential,
+            process=Process.hierarchical,
+            manager_agent=manager,
+            memory=True,
+            cache=True,
             verbose=True
         )
 
         result = crew.kickoff()
 
-        # Normalize result using our shared utility
-        raw_result = str(result)
-        from app.core.response_normalizer import response_normalizer
-        normalized = response_normalizer.normalize(raw_result, source="TradingCrew")
+        # ── EXTRACT STRUCTURED DATA ──
+        # result.pydantic is populated when output_pydantic is used in the final task
+        if hasattr(result, 'pydantic') and result.pydantic:
+            final_data = result.pydantic.dict()
+        else:
+            # Fallback for manual parsing
+            from app.core.response_normalizer import response_normalizer
+            normalized = response_normalizer.normalize(str(result), source="TradingCrew")
+            final_data = normalized.data
         
         # ── DEDICATED TRANSLATION LAYER ──
-        # If language is NOT English, use Google Translate to ensure high-quality output
-        # specifically for the 'reasoning' field which contains the bulk of the content.
-        if self.language != "English" and isinstance(normalized.data, dict):
-            reasoning = normalized.data.get("reasoning")
+        if self.language != "English":
+            reasoning = final_data.get("reasoning")
             if reasoning:
                 translated_reasoning = translation_service.translate(reasoning, self.language)
-                normalized.data["reasoning"] = translated_reasoning
+                final_data["reasoning"] = translated_reasoning
 
         # ── ENSURE FRONTEND COMPATIBILITY ──
-        final_data = normalized.data
-        if isinstance(final_data, dict) and "parsed_data" not in final_data:
-            normalized.data = {"parsed_data": final_data}
+        # The frontend expects parsed_data OR direct fields
+        output_payload = {"parsed_data": final_data, **final_data}
 
         # Persist analysis result to Supabase
         db_service.save_analysis(
             symbol=self.symbol,
-            decision_output=raw_result,
+            decision_output=json.dumps(final_data),
             portfolio=self.portfolio,
         )
 
-        return normalized.model_dump()
+        return {"status": "success", "data": output_payload, "confidence": final_data.get("confidence")}
 

@@ -30,17 +30,14 @@ class TradingTasks:
         )
 
     def decision_task(self, agent, symbol):
+        from app.chat.validators import TradingAnalysisSchema
         return Task(
-            description=f"Synthesize all data to give a final BUY/SELL/HOLD decision for {symbol} with Entry, Target, and Stop Loss parameters. Provide a professional reasoning that justifies the decision.",
+            description=(
+                f"Synthesize all research data to give a final BUY/SELL/HOLD decision for {symbol}. "
+                "You MUST provide specific Entry, Target, and Stop Loss levels. "
+                "Ensure your reasoning reflects deep institutional-grade expertise."
+            ),
             agent=agent,
-            expected_output='''Strictly return a valid JSON object matching this exact schema:
-{
-  "decision": "BUY",
-  "entry": "Rs. 2450 - 2460",
-  "target": "Rs. 2650",
-  "stop_loss": "Rs. 2380",
-  "confidence": 92.5,
-  "reasoning": "Provide detailed professional explanation here..."
-}
-Do not include any additional text or markdown formatting outside of the JSON block.'''
+            expected_output=f"A complete, structured trading plan for {symbol} including Entry, Target, and Stop Loss.",
+            output_pydantic=TradingAnalysisSchema
         )

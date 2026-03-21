@@ -29,7 +29,7 @@ class DashboardService:
         # Top 10 heavyweights of Nifty 50 for quick "Movers" calculation
         self.top_tickers = [
             "RELIANCE.NS", "HDFCBANK.NS", "ICICIBANK.NS", "INFY.NS", 
-            "TCS.NS", "ITC.NS", "TATAMOTORS.NS", "SBIN.NS", "BHARTIARTL.NS", "BAJFINANCE.NS"
+            "TCS.NS", "ITC.NS", "AXISBANK.NS", "SBIN.NS", "BHARTIARTL.NS", "BAJFINANCE.NS"
         ]
         # Pre-warm cache in background so first real request is always a hit
         _IO_POOL.submit(self._warm_cache)
@@ -98,8 +98,8 @@ class DashboardService:
                 return None
 
             close = df["Close"]
-            current = float(close.iloc[-1])
-            prev    = float(close.iloc[-2])
+            current = float(close.iloc[-1].item()) if hasattr(close.iloc[-1], 'item') else float(close.iloc[-1])
+            prev    = float(close.iloc[-2].item()) if hasattr(close.iloc[-2], 'item') else float(close.iloc[-2])
 
             if prev == 0:
                 return None
