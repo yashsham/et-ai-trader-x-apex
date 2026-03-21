@@ -26,7 +26,7 @@ interface Analysis {
 }
 
 const ChartIntelligence = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [symbol, setSymbol] = useState("RELIANCE.NS");
   const [searchInput, setSearchInput] = useState("RELIANCE.NS");
   const [chartData, setChartData] = useState<ChartData[]>([]);
