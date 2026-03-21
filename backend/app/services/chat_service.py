@@ -135,27 +135,62 @@ class ChatService:
             yield f"data: {json.dumps({'token': token})}\n\n"
             await asyncio.sleep(0.1) # Snappier sequence
 
-        # Run actual Crew
+        # Run Lightning-Fast Single-Shot Analysis (<5s)
+        # Run Lightning-Fast Single-Shot Analysis (<5s)
         try:
-            loop = asyncio.get_event_loop()
-            with ThreadPoolExecutor() as pool:
-                result = await loop.run_in_executor(pool, lambda: ChatbotCrew(query, language=language, symbols=symbols).run())
+            from app.services.llm_router import llm_router
+            from app.services.market_service import market_service
+
+            # Gather data extremely fast directly from the service
+            market_ctx = ""
+            if symbols:
+                target_symbol = symbols[0] # Focus on the primary symbol
+                data = market_service.get_stock_data(target_symbol)
+                market_ctx = (
+                    f"Symbol: {target_symbol}\n"
+                    f"Price: {data.get('current_price', 'N/A')}\n"
+                    f"Day High: {data.get('dayHigh', 'N/A')}\n"
+                    f"Day Low: {data.get('dayLow', 'N/A')}\n"
+                    f"Volume: {data.get('volume', 'N/A')}\n"
+                )
+            else:
+                market_ctx = "General market inquiry."
             
-            # Robust extraction of the response text
-            full_response = (
-                result.get("explanation") or 
-                result.get("raw_text") or 
-                result.get("data", {}).get("explanation") or 
-                result.get("data", {}).get("raw_text") or 
-                "I have finished my analysis. How else can I help?"
-            )
+            # Construct a massive immediate prompt
+            prompt = f"""
+            Act as an elite Wall Street CIO managing a high-frequency trading desk.
+            You must reply in {language}.
             
-            # Stream final response
-            words = full_response.split(" ")
+            User's explicit question: '{query}'
+            
+            LIVE MARKET DATA JUST FETCHED:
+            {market_ctx}
+
+            Respond with a concise, high-conviction analysis. Structure your response cleanly.
+            Always include:
+            1. The Core Alignment (Overall trend)
+            2. The Technical Blueprint (Support/Resistance/Momentum)
+            3. The Final Verdict (Buy/Sell/Hold)
+            
+            DO NOT output JSON. Output beautiful Markdown with emojis. Go straight to the point.
+            """
+
+            # Direct call to the failover router — lightning fast
+            llm = llm_router.get_router()
+            result_str = llm.call([{"role": "user", "content": prompt}])
+
+            full_response = result_str
+            if "### 🎯 **SIGNAL:" not in result_str and "Final Verdict" not in result_str:
+                # Add risk disclaimer dynamically if not explicitly in response
+                full_response += "\n\n*Disclaimer: Trading involves significant risk. This is AI generated analysis.*"
+
+            # Stream final response in chunks
+            words = full_response.split()
             for i, word in enumerate(words):
                 chunk = word + (" " if i < len(words) - 1 else "")
                 yield f"data: {json.dumps({'token': chunk})}\n\n"
-                await asyncio.sleep(0.04)
+                await asyncio.sleep(0.01) # Ultra fast streaming
+
 
         except Exception as e:
             error_str = str(e).lower()
