@@ -5,12 +5,20 @@ from crewai import LLM
 
 logger = logging.getLogger(__name__)
 
-class FailoverLLM:
+class FailoverLLM(LLM):
     """
     A wrapper class for multiple CrewAI LLM instances that provides 
-    instant auto-switching (failover) logic.
+    instant auto-switching (failover) logic. Subclasses LLM to pass
+    CrewAI's strict Pydantic type validation on Agent.llm.
     """
     def __init__(self, primary: LLM, fallbacks: List[LLM] = []):
+        # Initialize the base class with the primary's parameters
+        super().__init__(
+            model=primary.model,
+            api_key=primary.api_key,
+            base_url=primary.base_url,
+            temperature=primary.temperature
+        )
         self.primary = primary
         self.fallbacks = fallbacks
         self.all_llms = [primary] + fallbacks
@@ -19,10 +27,6 @@ class FailoverLLM:
         self._circuit_breakers = {}
         self.cooldown_period = 60 # Seconds
         self.max_failures = 3
-
-        # Metadata required by CrewAI/LiteLLM
-        self.model = primary.model
-        self.provider = primary.provider
 
     def _is_broken(self, model_name: str) -> bool:
         """Check if the circuit breaker for a specific model is open."""

@@ -27,7 +27,14 @@ class LLMRouter:
             ))
             # Secondary Groq model for fallback within Groq
             available_llms.append(LLM(
-                model="groq/llama-3.1-70b-versatile",
+                model="groq/llama-3.1-8b-instant",
+                api_key=self.settings.GROQ_API_KEY,
+                temperature=0.1,
+                timeout=30
+            ))
+            # Tertiary Groq model (virtually unlimited free tier)
+            available_llms.append(LLM(
+                model="groq/llama3-8b-8192",
                 api_key=self.settings.GROQ_API_KEY,
                 temperature=0.1,
                 timeout=30
@@ -41,7 +48,7 @@ class LLMRouter:
                 temperature=0.1
             ))
             available_llms.append(LLM(
-                model="gemini/gemini-1.5-flash",
+                model="gemini/gemini-1.5-flash-8b",
                 api_key=self.settings.GEMINI_API_KEY,
                 temperature=0.1
             ))
@@ -51,7 +58,7 @@ class LLMRouter:
             for or_model in [
                 "meta-llama/llama-3.3-70b-instruct:free",
                 "microsoft/phi-4-reasoning:free",
-                "google/gemini-2.0-flash-exp:free"
+                "google/gemini-2.0-flash-lite-preview-02-05:free"
             ]:
                 available_llms.append(LLM(
                     model=or_model,
