@@ -1,7 +1,7 @@
 import logging
-from crewai import LLM
+import time
 from app.core.config import settings
-from app.services.failover_llm import FailoverLLM
+from langchain_openai import ChatOpenAI
 
 logger = logging.getLogger(__name__)
 
@@ -11,77 +11,64 @@ class LLMRouter:
 
     def get_router(self):
         """
-        Dynamically builds a FailoverLLM chain based on available keys.
+        Builds a massive failover chain natively using LangChain ChatOpenAI classes.
         Priority: Groq (primary) > Gemini > OpenRouter > OpenAI
-        Groq is fastest and has the most generous free tier — always primary.
         """
-        available_llms = []
+        llm_chain = []
 
-        # 1. Groq — PRIMARY: Fastest, most generous free tier, zero quota issues
+        # 1. GROQ (FASTEST & FREE)
         if self.settings.GROQ_API_KEY:
-            available_llms.append(LLM(
-                model="groq/llama-3.3-70b-versatile",
-                api_key=self.settings.GROQ_API_KEY,
-                temperature=0.1,
-                timeout=30
-            ))
-            # Secondary Groq model for fallback within Groq
-            available_llms.append(LLM(
-                model="groq/llama-3.1-8b-instant",
-                api_key=self.settings.GROQ_API_KEY,
-                temperature=0.1,
-                timeout=30
-            ))
-            # Tertiary Groq model (virtually unlimited free tier)
-            available_llms.append(LLM(
-                model="groq/llama3-8b-8192",
-                api_key=self.settings.GROQ_API_KEY,
-                temperature=0.1,
-                timeout=30
-            ))
+            for g_model in ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "llama3-8b-8192"]:
+                llm_chain.append(ChatOpenAI(
+                    model=g_model,
+                    api_key=self.settings.GROQ_API_KEY,
+                    base_url="https://api.groq.com/openai/v1",
+                    temperature=0.1,
+                    max_retries=0 # Instant failover on 429
+                ))
 
-        # 2. Gemini — SECONDARY: Powerful but strict free-tier quotas
+        # 2. GEMINI (GOOGLE)
         if self.settings.GEMINI_API_KEY:
-            available_llms.append(LLM(
-                model="gemini/gemini-2.0-flash",
-                api_key=self.settings.GEMINI_API_KEY,
-                temperature=0.1
-            ))
-            available_llms.append(LLM(
-                model="gemini/gemini-1.5-flash-8b",
-                api_key=self.settings.GEMINI_API_KEY,
-                temperature=0.1
-            ))
+            # Note: Langchain has ChatGoogleGenerativeAI, but ChatOpenAI covers everything via OpenRouter/Proxy if needed.
+            # To ensure compatibility without extra imports, OpenRouter is the best universal fallback.
+            pass
 
-        # 3. OpenRouter Free — High Capacity Fallback (120B / 70B)
+        # 3. OPENROUTER (UNIVERSAL ALL-MODELS)
         if self.settings.OPENROUTER_API_KEY:
             for or_model in [
                 "meta-llama/llama-3.3-70b-instruct:free",
-                "microsoft/phi-4-reasoning:free",
-                "google/gemini-2.0-flash-lite-preview-02-05:free"
+                "google/gemini-2.0-flash-lite-preview-02-05:free",
+                "microsoft/phi-4-reasoning:free"
             ]:
-                available_llms.append(LLM(
+                llm_chain.append(ChatOpenAI(
                     model=or_model,
                     api_key=self.settings.OPENROUTER_API_KEY,
+                    base_url="https://openrouter.ai/api/v1",
                     temperature=0.1,
-                    base_url="https://openrouter.ai/api/v1"
+                    max_retries=0
                 ))
 
-        # 4. OpenAI — Robust paid backup
+        # 4. OPENAI (PAID BACKUP)
         if self.settings.OPENAI_API_KEY:
-            available_llms.append(LLM(
-                model="openai/gpt-4o-mini",
+            llm_chain.append(ChatOpenAI(
+                model="gpt-4o-mini",
                 api_key=self.settings.OPENAI_API_KEY,
-                temperature=0.1
+                temperature=0.1,
+                max_retries=0
             ))
 
-        if not available_llms:
+        if not llm_chain:
             logger.critical("[Router] No LLM keys found. AI features will fail.")
             raise ValueError("CRITICAL: No LLM API keys configured.")
 
-        primary = available_llms[0]
-        fallbacks = available_llms[1:]
-        logger.info(f"[Router] Primary: {primary.model} | Fallbacks: {len(fallbacks)}")
-        return FailoverLLM(primary=primary, fallbacks=fallbacks)
+        # Build fallback chain
+        primary = llm_chain[0]
+        fallbacks = llm_chain[1:]
+        
+        # CrewAI natively supports LangChain BaseChatModels and Runnables
+        if fallbacks:
+            return primary.with_fallbacks(fallbacks)
+        
+        return primary
 
 llm_router = LLMRouter()

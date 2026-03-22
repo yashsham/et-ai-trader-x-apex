@@ -11,21 +11,15 @@ class FailoverLLM(LLM):
     instant auto-switching (failover) logic. Subclasses LLM to pass
     CrewAI's strict Pydantic type validation on Agent.llm.
     """
-    def __init__(self, primary: LLM, fallbacks: List[LLM] = []):
-        # Initialize the base class with the primary's parameters
-        super().__init__(
-            model=primary.model,
-            api_key=primary.api_key,
-            base_url=primary.base_url,
-            temperature=primary.temperature
-        )
-        self.primary = primary
-        self.fallbacks = fallbacks
-        self.all_llms = [primary] + fallbacks
-        
-        # Circuit Breaker state: {model_name: (failure_count, last_failure_time)}
+    def __init__(self, **kwargs):
+        # Initialize the Pydantic base class cleanly without any custom arguments
+        super().__init__(**kwargs)
+        # These will be populated explicitly after initialization to bypass Pydantic errors
+        self.primary = None
+        self.fallbacks = []
+        self.all_llms = []
         self._circuit_breakers = {}
-        self.cooldown_period = 60 # Seconds
+        self.cooldown_period = 60
         self.max_failures = 3
 
     def _is_broken(self, model_name: str) -> bool:

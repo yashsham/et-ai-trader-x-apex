@@ -177,7 +177,9 @@ class ChatService:
 
             # Direct call to the failover router — lightning fast
             llm = llm_router.get_router()
-            result_str = llm.call([{"role": "user", "content": prompt}])
+            from langchain_core.messages import HumanMessage
+            result = llm.invoke([HumanMessage(content=prompt)])
+            result_str = result.content if hasattr(result, "content") else str(result)
 
             full_response = result_str
             if "### 🎯 **SIGNAL:" not in result_str and "Final Verdict" not in result_str:
