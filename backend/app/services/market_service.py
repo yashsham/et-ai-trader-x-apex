@@ -15,7 +15,7 @@ class MarketService:
 
     # ── STOCK DATA ────────────────────────────────────────────────
     def get_stock_data(self, symbol: str, period: str = "1mo"):
-        """Primary: yfinance  →  Fallback: Finnhub. Includes 1-hour caching per symbol/period."""
+        """Primary: yfinance  →  Fallback: Finnhub. Includes adaptive caching."""
         cache_key = f"stock_data_{symbol}_{period}"
         cached = cache_service.get(cache_key)
         if cached:
@@ -28,7 +28,9 @@ class MarketService:
             res = self._finnhub_data(symbol)
         
         if res:
-            cache_service.set(cache_key, res, expire_seconds=3600)
+            # High-fidelity charts (1d period) refresh every 15s, others 1hr
+            expire = 15 if period == "1d" else 3600
+            cache_service.set(cache_key, res, expire_seconds=expire)
         return res
 
     def _yfinance_data(self, symbol: str, period: str = "1mo"):

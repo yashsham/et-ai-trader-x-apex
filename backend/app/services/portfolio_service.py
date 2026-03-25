@@ -15,7 +15,14 @@ class PortfolioBrainService:
         pass
 
     def get_portfolio_summary(self, user_id: str = "default_user"):
-        """Get live valuation for all holdings and basic allocation stats."""
+        """Get live valuation for all holdings and basic allocation stats with 30s cache."""
+        cache_key = f"portfolio_summary_{user_id}"
+        from app.services.cache_service import cache_service
+        cached = cache_service.get(cache_key)
+        if cached:
+            print(f"[Portfolio] Using cached summary for {user_id}")
+            return cached
+
         holdings = db_service.get_portfolio_holdings(user_id)
         if not holdings:
             return self._empty_portfolio_response()
@@ -28,33 +35,27 @@ class PortfolioBrainService:
         # 1. Parallel Fetch all prices
         symbols = list(set(h["symbol"] for h in holdings))
         
-        # Strategy: Use batch fetch for efficiency, then fallback to parallel single fetches
+        # Strategy: Use batch fetch for efficiency
         batch_prices = market_service.get_stock_data_batch(symbols)
         
-        def _get_price(holding):
-            sym = holding["symbol"]
-            if sym in batch_prices:
-                return sym, batch_prices[sym]
-            try:
-                # Fallback to single fetch if batch missed it
-                live_data = market_service.get_stock_data(sym)
-                return sym, live_data.get("current_price", holding["avg_price"])
-            except:
-                return sym, holding["avg_price"]
-
-        # Run remaining/verified fetches in parallel
+        # Build price map
         price_map = {}
-        futures = [_IO_POOL.submit(_get_price, h) for h in holdings]
-        for f in as_completed(futures):
-            sym, price = f.result()
-            price_map[sym] = price
+        for sym in symbols:
+            if sym in batch_prices:
+                price_map[sym] = batch_prices[sym]
+            else:
+                try:
+                    live_data = market_service.get_stock_data(sym)
+                    price_map[sym] = live_data.get("current_price") or 0
+                except:
+                    price_map[sym] = 0
 
-        # 2. Process and Enrich
+        # ... (rest of processing)
         for h in holdings:
             symbol = h["symbol"]
             qty = h["quantity"]
             avg_price = h["avg_price"]
-            current_price = price_map.get(symbol, avg_price)
+            current_price = price_map.get(symbol) or avg_price
 
             value = qty * current_price
             pnl = (current_price - avg_price) * qty
@@ -81,7 +82,6 @@ class PortfolioBrainService:
         # Calculate Percentages
         for h in enriched_holdings:
             h["allocation"] = round((h["value"] / total_value) * 100, 2) if total_value > 0 else 0
-            # Frontend mapping: name, allocation, value_raw, value, change, sector
             h["name"] = h["symbol"]
             h["value_raw"] = h["value"]
             h["value"] = f"₹{h['value']:,}"
@@ -96,23 +96,27 @@ class PortfolioBrainService:
                 "color": colors[i % len(colors)]
             })
 
-        # Default insights if not analyzed
+        # Default insights
         default_insights = [
             {"type": "suggestion", "text": "AI Optimization will unlock deeper diversification insights."},
             {"type": "positive", "text": "Portfolio tracking is active and syncing with live market data."}
         ]
 
-        return {
+        result = {
             "total_value": f"₹{total_value:,.2f}",
             "total_value_raw": total_value,
             "total_pnl": round(total_pnl, 2),
             "pnl_pct": round((total_pnl / (total_value - total_pnl)) * 100, 2) if (total_value - total_pnl) > 0 else 0,
             "holdings": enriched_holdings,
             "sectors": sectors,
-            "risk_level": 45, # Default moderate
+            "risk_level": 45,
             "insights": default_insights,
             "last_updated": datetime.now().isoformat()
         }
+        
+        # Cache for 30s
+        cache_service.set(cache_key, result, expire_seconds=30)
+        return result
 
     async def analyze_portfolio(self, user_id: str = "default_user", language: str = "English"):
         """Trigger AI Portfolio Optimization Swarm."""

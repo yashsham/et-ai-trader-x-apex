@@ -53,11 +53,26 @@ export function AIAlerts() {
           const isBuy = alert.decision === "BUY";
           const isSell = alert.decision === "SELL";
           
+          // Helper to parse JSON if output is structured
+          const cleanOutput = () => {
+            try {
+              // Remove potential markdown code blocks
+              const cleaned = alert.decision_output.replace(/```json|```/g, "").trim();
+              if (cleaned.startsWith("{")) {
+                const parsed = JSON.parse(cleaned);
+                return parsed.reasoning || parsed.insight || parsed.core_insight || alert.decision_output;
+              }
+              return alert.decision_output;
+            } catch (e) {
+              return alert.decision_output;
+            }
+          };
+          
           return (
             <div
               key={alert.id}
-              onClick={() => navigate(`/history`)}
-              className={`p-3 rounded-lg bg-accent border transition-all duration-150 cursor-pointer ${
+              onClick={() => navigate(`/history?id=${alert.id}&symbol=${alert.symbol}`)}
+              className={`p-3 rounded-lg bg-accent border transition-all duration-150 cursor-pointer group ${
                 isBuy
                   ? "border-profit/30 hover:glow-profit"
                   : isSell ? "border-loss/30 hover:glow-loss" : "border-white/[0.05] hover:border-gold/30"
@@ -65,20 +80,22 @@ export function AIAlerts() {
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono-data text-sm font-bold text-foreground">
-                    {alert.symbol}
+                  <span className="font-mono-data text-sm font-bold text-foreground group-hover:text-gold transition-colors">
+                    {(alert.symbol || "N/A").toUpperCase()}
                   </span>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold tracking-tighter ${
                     isBuy ? "bg-profit/10 text-profit" : isSell ? "bg-loss/10 text-loss" : "bg-muted text-gold"
                   }`}>
-                    {t(alert.decision.toLowerCase() as any)}
+                    {t(alert.decision.toLowerCase() as any) || alert.decision}
                   </span>
                 </div>
-                <span className="font-mono-data text-xs text-gold font-semibold">
+                <span className="font-mono-data text-[10px] text-muted-foreground">
                   {new Date(alert.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground line-clamp-2 mt-2">{alert.decision_output}</p>
+              <p className="text-xs text-muted-foreground/90 line-clamp-2 mt-2 leading-relaxed">
+                {cleanOutput()}
+              </p>
               <div className="flex items-center justify-end mt-2">
                 <span className="text-[10px] text-crimson flex items-center gap-0.5 hover:underline">
                   {t('view_full_report')} <ArrowUpRight className="w-3 h-3" />

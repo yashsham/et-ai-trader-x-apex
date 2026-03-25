@@ -32,5 +32,5 @@ def validate_trading_output(output: str) -> bool:
     Used by CrewAI guardrails to ensure output quality.
     Note: Simple version for now, production would use Pydantic parsing.
     """
-    keywords = ["### 💎 **THE CORE ALIGNMENT**", "### 🛡️ **RISK SPECTRUM**", "BOTTOM LINE"]
+    keywords = ["### 🏗️ **THE BLUEPRINT**", "### 🛡️ **RISK MITIGATION**", "BOTTOM LINE"]
     return all(k in output for k in keywords)

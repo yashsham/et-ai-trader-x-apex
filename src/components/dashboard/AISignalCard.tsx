@@ -210,29 +210,54 @@ export function AISignalCard({ data, onViewTradePlan, index = 0 }: AISignalCardP
           <span className="text-[10px] text-muted-foreground">{t('volume')}: {data.volume}</span>
         </div>
 
-        {/* AI Explanation */}
-        <p className="text-xs text-muted-foreground leading-relaxed mb-5 italic">
-          "{data.explanation}"
-        </p>
+        {/* AI Explanation (Expandable) */}
+        <div className="mb-5">
+          <button 
+            onClick={() => {
+              const el = document.getElementById(`explanation-${data.id}`);
+              if (el) {
+                el.classList.toggle('hidden');
+              }
+            }}
+            className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-gold transition-colors mb-2"
+          >
+            <Zap className="w-3 h-3" />
+            Why this signal?
+          </button>
+          <div id={`explanation-${data.id}`} className="hidden">
+            <p className="text-xs text-muted-foreground leading-relaxed italic border-l-2 border-white/5 pl-3 py-1 bg-white/[0.02] rounded-r-lg">
+              "{data.explanation}"
+            </p>
+          </div>
+        </div>
 
         {/* Actions */}
-        <div className="flex gap-2">
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => onViewTradePlan(data)}
-            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[hsl(var(--crimson))] text-primary-foreground text-xs font-bold hover:shadow-[0_0_20px_-3px_hsl(var(--crimson)/0.6)] transition-shadow duration-300"
-          >
-            <Eye className="w-3.5 h-3.5" />
-            {t('view_trade_plan')}
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-4 py-2.5 rounded-lg border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:border-[hsl(var(--gold)/0.4)] transition-all duration-200"
-          >
-            <Plus className="w-3.5 h-3.5" />
-          </motion.button>
+        <div className="flex flex-col gap-3">
+          <div className="flex gap-2">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => onViewTradePlan(data)}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[hsl(var(--crimson))] text-primary-foreground text-xs font-bold hover:shadow-[0_0_20px_-3px_hsl(var(--crimson)/0.6)] transition-shadow duration-300"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              {t('view_trade_plan')}
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-4 py-2.5 rounded-lg border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:border-[hsl(var(--gold)/0.4)] transition-all duration-200"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </motion.button>
+          </div>
+          
+          <div className="flex items-center justify-center gap-1.5 opacity-50">
+             <div className="flex items-center justify-center w-4 h-4 rounded bg-gold/20">
+               <ShieldAlert className="w-2.5 h-2.5 text-gold" />
+             </div>
+             <span className="text-[9px] uppercase tracking-widest text-muted-foreground font-black">Analyzed: Filings & Insider Trades</span>
+          </div>
         </div>
       </div>
     </motion.div>

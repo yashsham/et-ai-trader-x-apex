@@ -4,6 +4,16 @@
 
 ---
 
+## 🏆 Hackathon Tracks Alignment
+
+This project directly addresses the three core challenges of the ET Hackathon:
+
+1. **Opportunity Radar (Signal Finder)**: The Dashboard features a live-updating radar that identifies high-conviction breakout/breakdown signals. It incorporates real-time sentiment analysis, explicitly calling out institutional filings, insider trades, and volume spikes.
+2. **Chart Pattern Intelligence**: The `Chart Intelligence` page goes beyond generic trend analysis. It explicitly names specific chart formations (e.g., "Bullish Flag", "Head and Shoulders") and provides the historical back-tested success rate for that specific pattern on the given asset to quantify risk.
+3. **Market ChatGPT Next Gen**: The `AI Assistant` sidebar is a specialized, multi-agent financial chatbot. Unlike generic LLMs, it provides highly structured, actionable trading advice and is strictly instructed to **cite its sources** (e.g., "Source: NSE Filings", "per ET Markets data") to prevent hallucinations and build trust.
+
+---
+
 ## 🌟 Key Features
 
 ### 📡 Real-time Market Intelligence

@@ -85,24 +85,20 @@ class ChatService:
         yield f"data: {json.dumps({'token': '🛡️ ET AI Engine: Initializing secure uplink... '})}\n\n"
         await asyncio.sleep(0.01)
 
-        # 2. Routing (LangChain based) - Now happens after first yield
         # 2. Routing (LangChain based) - Now happens AFTER first yield
         from app.chat.router import ChatRouter
         router = ChatRouter(language=language)
         
-        # Temporary status to show we are classification
-        # yield f"data: {json.dumps({'token': 'Routing intelligence request... '})}\n\n"
-        
         # Blocking call to router (Gemini 2.0 usually fast, but still a round trip)
-        intent, response_or_trigger, symbols = router.route(query)
+        intent, response_or_trigger, symbols = await router.route(query)
 
         if intent == "CONVERSATIONAL":
             # Direct response (Fast)
-            words = response_or_trigger.split(" ")
-            for i, word in enumerate(words):
-                chunk = word + (" " if i < len(words) - 1 else "")
+            chunk_size = 8
+            for i in range(0, len(response_or_trigger), chunk_size):
+                chunk = response_or_trigger[i:i+chunk_size]
                 yield f"data: {json.dumps({'token': chunk})}\n\n"
-                await asyncio.sleep(0.02) # High speed for greetings
+                await asyncio.sleep(0.01) # High speed for greetings
             yield "data: [DONE]\n\n"
             return
 
@@ -136,7 +132,6 @@ class ChatService:
             await asyncio.sleep(0.1) # Snappier sequence
 
         # Run Lightning-Fast Single-Shot Analysis (<5s)
-        # Run Lightning-Fast Single-Shot Analysis (<5s)
         try:
             from app.services.llm_router import llm_router
             from app.services.market_service import market_service
@@ -158,7 +153,7 @@ class ChatService:
             
             # Construct a massive immediate prompt
             prompt = f"""
-            Act as an elite Wall Street CIO managing a high-frequency trading desk.
+            Act as a Principal Systems Architect & Quantitative Strategist with 40 years of backend/systems experience and 4 years as a top AI Engineer at Google.
             You must reply in {language}.
             
             User's explicit question: '{query}'
@@ -166,11 +161,18 @@ class ChatService:
             LIVE MARKET DATA JUST FETCHED:
             {market_ctx}
 
-            Respond with a concise, high-conviction analysis. Structure your response cleanly.
-            Always include:
-            1. The Core Alignment (Overall trend)
-            2. The Technical Blueprint (Support/Resistance/Momentum)
-            3. The Final Verdict (Buy/Sell/Hold)
+            Provide a high-precision, direct design response. Zero preamble. No "based on analysis" or "I have checked" meta-commentary.
+            Deliver the solution/design directly using this institutional-grade structure. 
+            CRITICAL: Use double newlines (\n\n) between every section and header for proper architectural rendering. 
+            
+            ### 🏗️ **THE BLUEPRINT**
+            (High-conviction core alignment and system architecture of the trade/concept)
+            
+            ### ⚙️ **EXECUTION ENGINE**
+            (Deep technical verticals, numbers, support/resistance, and momentum data)
+            
+            ### 🛡️ **RISK MITIGATION**
+            (Critical failure modes, stop-losses, and hedging requirements)
             
             DO NOT output JSON. Output beautiful Markdown with emojis. Go straight to the point.
             """
@@ -178,7 +180,7 @@ class ChatService:
             # Direct call to the failover router — lightning fast
             llm = llm_router.get_router()
             from langchain_core.messages import HumanMessage
-            result = llm.invoke([HumanMessage(content=prompt)])
+            result = await llm.ainvoke([HumanMessage(content=prompt)])
             result_str = result.content if hasattr(result, "content") else str(result)
 
             full_response = result_str
@@ -186,10 +188,10 @@ class ChatService:
                 # Add risk disclaimer dynamically if not explicitly in response
                 full_response += "\n\n*Disclaimer: Trading involves significant risk. This is AI generated analysis.*"
 
-            # Stream final response in chunks
-            words = full_response.split()
-            for i, word in enumerate(words):
-                chunk = word + (" " if i < len(words) - 1 else "")
+            # Stream final response in chunks (preserving structural whitespace and newlines)
+            chunk_size = 12 # Higher chunk size for the "institutional directness" feel
+            for i in range(0, len(full_response), chunk_size):
+                chunk = full_response[i:i+chunk_size]
                 yield f"data: {json.dumps({'token': chunk})}\n\n"
                 await asyncio.sleep(0.01) # Ultra fast streaming
 

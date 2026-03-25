@@ -24,15 +24,17 @@ export function Watchlist() {
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
-    if (!newSymbol.trim()) return;
+    const symbol = newSymbol.trim().toUpperCase();
+    if (!symbol) return;
+    
     setAdding(true);
-    const result = await addToWatchlist(newSymbol.trim());
+    const result = await addToWatchlist(symbol);
     if (result) {
-      toast.success(`${newSymbol.toUpperCase()} added to watchlist`);
+      toast.success(`${symbol} added to watchlist`);
       setNewSymbol("");
       await loadWatchlist();
     } else {
-      toast.error("Failed to add to watchlist. Check DB connection.");
+      toast.error("Failed to add to watchlist. Code: DB_SYNC_ERROR");
     }
     setAdding(false);
   }

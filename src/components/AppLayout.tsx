@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Zap, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { OnboardingTour } from "@/components/ui/OnboardingTour";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -64,7 +65,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      <OnboardingTour />
       <AppSidebar collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
       <div
         className="transition-all duration-200 flex flex-col min-h-screen"

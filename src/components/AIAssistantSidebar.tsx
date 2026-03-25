@@ -139,7 +139,7 @@ export function AIAssistantSidebar({ isOpen, onClose }: AIAssistantSidebarProps)
             <div className="flex justify-start">
               <div className="bg-accent/50 border border-white/5 p-3.5 rounded-2xl rounded-tl-sm flex items-center gap-2 text-muted-foreground">
                 <Loader2 className="w-4 h-4 animate-spin text-gold" />
-                <span className="text-xs font-mono">Agents researching...</span>
+                <span className="text-xs font-mono">Analyzing data...</span>
               </div>
             </div>
           )}
@@ -167,7 +167,7 @@ export function AIAssistantSidebar({ isOpen, onClose }: AIAssistantSidebarProps)
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              placeholder="Ask the swarm about a stock..."
+              placeholder="Ask about a stock or trend..."
               className="flex-1 bg-transparent text-sm text-white placeholder:text-muted-foreground outline-none px-2"
               disabled={isLoading}
             />

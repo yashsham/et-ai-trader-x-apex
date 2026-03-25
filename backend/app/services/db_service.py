@@ -27,10 +27,22 @@ class DBService:
             else:
                 decision = "UNKNOWN"
 
+            # 40 Years Experience: Clean the AI output before saving. 
+            # Strip markdown backticks (```json ... ```) which agents often include.
+            clean_output = decision_output.strip()
+            if clean_output.startswith("```"):
+                # Remove first and last lines if they are triple backticks
+                lines = clean_output.split("\n")
+                if lines[0].startswith("```"):
+                    lines = lines[1:]
+                if lines and lines[-1].startswith("```"):
+                    lines = lines[:-1]
+                clean_output = "\n".join(lines).strip()
+
             result = sb.table("analysis_results").insert({
                 "symbol": symbol,
                 "decision": decision,
-                "decision_output": decision_output,
+                "decision_output": clean_output,
                 "portfolio": portfolio if portfolio else {},
             }).execute()
             return result.data[0] if result.data else None

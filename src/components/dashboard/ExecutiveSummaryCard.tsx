@@ -1,14 +1,27 @@
 import { useEffect, useState } from "react";
-import { Brain, Zap, ArrowRight, Loader2 } from "lucide-react";
+import { Brain, Zap, ArrowRight, Loader2, CheckCircle2, ShieldCheck, TrendingUp } from "lucide-react";
 import { API_BASE_URL } from "@/lib/api-config";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger,
+  DialogDescription
+} from "@/components/ui/dialog";
 
 interface SummaryData {
   summary: string;
   priority_action: string;
   highlight_section: string;
   timestamp: string;
+  insights?: {
+    reasoning: string;
+    key_metrics: string[];
+    sentiment_analysis: string;
+  };
 }
 
 export function ExecutiveSummaryCard() {
@@ -87,14 +100,84 @@ export function ExecutiveSummaryCard() {
               <span className="text-sm font-black text-white tracking-widest">{data.priority_action}</span>
             </div>
           </div>
-          <motion.button
-            whileHover={{ x: 5 }}
-            className="flex items-center gap-2 text-[10px] font-black text-gold uppercase tracking-widest hover:text-white transition-colors"
-          >
-            Review Insights <ArrowRight className="w-3 h-3" />
-          </motion.button>
+          
+          <Dialog>
+            <DialogTrigger asChild>
+              <motion.button
+                whileHover={{ x: 5 }}
+                className="flex items-center gap-2 text-[10px] font-black text-gold uppercase tracking-widest hover:text-white transition-colors"
+              >
+                Review Insights <ArrowRight className="w-3 h-3" />
+              </motion.button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px] bg-[#0A0A0B] border-gold/20 shadow-[0_0_50px_-12px_rgba(212,163,47,0.3)]">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-gold tracking-widest uppercase italic text-xl">
+                  <ShieldCheck className="w-6 h-6" />
+                  Alpha Intel Deep-Dive
+                </DialogTitle>
+                <DialogDescription className="text-muted-foreground font-mono text-[10px] uppercase tracking-widest">
+                  Synthesized Chain-of-Thought Analysis
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-6 py-4">
+                {/* Reasoning Section */}
+                <div className="space-y-2">
+                  <h4 className="text-[10px] font-black text-gold/60 uppercase tracking-widest flex items-center gap-2">
+                    <Brain className="w-3 h-3" /> Core Reasoning
+                  </h4>
+                  <p className="text-sm text-foreground/90 leading-relaxed font-medium bg-white/5 p-4 rounded-lg border border-white/5 italic">
+                    {data.insights?.reasoning || "Analyzing underlying market factors..."}
+                  </p>
+                </div>
+
+                {/* Metrics Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <h4 className="text-[10px] font-black text-gold/60 uppercase tracking-widest flex items-center gap-2">
+                      <TrendingUp className="w-3 h-3" /> Key Supporting Metrics
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {(data.insights?.key_metrics || ["Price Velocity", "Accumulation"]).map((m, i) => (
+                        <span key={i} className="px-2 py-1 rounded bg-gold/10 border border-gold/20 text-[10px] text-gold font-bold uppercase tracking-tighter">
+                          {m}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="text-[10px] font-black text-gold/60 uppercase tracking-widest flex items-center gap-2">
+                      <Zap className="w-3 h-3" /> Action Conviction
+                    </h4>
+                    <div className="flex items-center gap-2 text-profit font-black text-sm uppercase italic">
+                      <CheckCircle2 className="w-4 h-4" />
+                      Institutional Grade
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sentiment Breakdown */}
+                <div className="space-y-2">
+                  <h4 className="text-[10px] font-black text-gold/60 uppercase tracking-widest flex items-center gap-2">
+                    <Zap className="w-3 h-3" /> Sentiment Pulse
+                  </h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {data.insights?.sentiment_analysis || "Market sentiment is being cross-referenced with global indices."}
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-white/5 flex justify-end">
+                <p className="text-[8px] font-mono text-muted-foreground uppercase opacity-50">
+                  Analysis Timestamp: {new Date(data.timestamp).toLocaleString()}
+                </p>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </motion.div>
   );
 }
+

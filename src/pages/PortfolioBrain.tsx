@@ -35,12 +35,14 @@ const PortfolioBrain = () => {
   const [data, setData] = useState<PortfolioData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOptimizing, setIsOptimizing] = useState(false);
+  const [lastSync, setLastSync] = useState<string>(new Date().toLocaleTimeString());
+  const [refreshing, setRefreshing] = useState(false);
 
   const loadPortfolio = useCallback(async (isAnalysis = false) => {
     if (!user) return;
     
-    setLoading(true);
     if (isAnalysis) setIsOptimizing(true);
+    if (!isAnalysis) setRefreshing(true);
     
     try {
       const baseUrl = isAnalysis 
@@ -56,6 +58,7 @@ const PortfolioBrain = () => {
       const json = await res.json();
       if (json.success && json.data) {
         setData(json.data);
+        setLastSync(new Date().toLocaleTimeString());
         if (isAnalysis) toast.success("AI Portfolio Optimization Complete");
       }
     } catch (err) {
@@ -64,6 +67,7 @@ const PortfolioBrain = () => {
     } finally {
       setLoading(false);
       setIsOptimizing(false);
+      setRefreshing(false);
     }
   }, [user, language]);
 
@@ -88,6 +92,17 @@ const PortfolioBrain = () => {
     };
   }, [loadPortfolio]);
 
+  // Real-time Price Polling (every 30s)
+  useEffect(() => {
+    if (loading || !user) return;
+    
+    const interval = setInterval(() => {
+      loadPortfolio();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [user, loading, loadPortfolio]);
+
   // Pie chart calculation
   let cumAngle = 0;
   const pieSlices = data?.sectors.map((s) => {
@@ -107,9 +122,18 @@ const PortfolioBrain = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="font-display text-2xl font-bold text-foreground">{t('portfolio_brain')}</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {t('portfolio_desc')}
-            </p>
+            <div className="flex items-center gap-3 mt-1">
+              <p className="text-sm text-muted-foreground">
+                {t('portfolio_desc')}
+              </p>
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-accent/50 border border-white/5">
+                <div className={`w-1.5 h-1.5 rounded-full ${refreshing ? 'bg-gold animate-ping' : 'bg-profit shadow-[0_0_8px_hsl(var(--profit))]'}`}></div>
+                <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest leading-none">
+                  {refreshing ? 'Syncing...' : 'Live'}
+                </span>
+                <span className="text-[9px] font-mono text-muted-foreground opacity-50 leading-none">{lastSync}</span>
+              </div>
+            </div>
           </div>
           <button 
             onClick={() => loadPortfolio(true)}

@@ -77,6 +77,7 @@ class ChatbotCrew:
             description=(
                 f"Review the entire data chain. Compose a final, premium response to the user's query: '{self.query}'. "
                 "Ensure your reasoning is deep and reflects a 40-year veteran perspective. "
+                "CRITICAL: You MUST explicitly cite your data sources for any news, filings, bulk deals, or market data mentioned (e.g., 'Source: NSE filing', 'per ET Markets data'). "
                 "Structure your output according to the provided Pydantic schema."
             ),
             expected_output=f"A high-conviction, professional trading analysis in {self.language}.",
@@ -108,16 +109,16 @@ class ChatbotCrew:
                 decision_badge = f"**{p.decision}**" if p.decision else "**HOLD**"
                 
                 # Build sections from whichever fields are available
-                sections = [f"### 🎯 **SIGNAL: {decision_badge}**\n"]
+                sections = [f"### 🏗️ **THE BLUEPRINT**\n"]
                 
                 if p.reasoning:
-                    sections.append(f"### 💎 **CORE REASONING**\n{p.reasoning}\n")
+                    sections.append(f"{p.reasoning}\n\n")
                 elif p.core_insight:
-                    sections.append(f"### 💎 **THE CORE ALIGNMENT**\n{p.core_insight}\n")
+                    sections.append(f"{p.core_insight}\n\n")
                 
                 if p.technical_bullets:
-                    sections.append("### 📈 **TECHNICAL & DATA VERTICALS**\n" + 
-                        "\n".join([f"- {b}" for b in p.technical_bullets]) + "\n")
+                    sections.append("### ⚙️ **EXECUTION ENGINE**\n" + 
+                        "\n".join([f"- {b}" for b in p.technical_bullets]) + "\n\n")
                 
                 # Add key levels
                 if p.entry or p.target or p.stop_loss:
@@ -125,15 +126,15 @@ class ChatbotCrew:
                     if p.entry: levels.append(f"**Entry:** {p.entry}")
                     if p.target: levels.append(f"**Target:** {p.target}")
                     if p.stop_loss: levels.append(f"**Stop Loss:** {p.stop_loss}")
-                    sections.append("### 📊 **KEY LEVELS**\n" + "  |  ".join(levels) + "\n")
+                    sections.append("#### 📊 **KEY LEVELS**\n" + "  |  ".join(levels) + "\n\n")
                 
                 if p.risk_notes:
-                    sections.append(f"### 🛡️ **RISK SPECTRUM**\n{p.risk_notes}\n")
+                    sections.append(f"### 🛡️ **RISK MITIGATION**\n{p.risk_notes}\n\n")
                 
                 if p.bottom_line:
                     sections.append(f"**BOTTOM LINE:** {p.bottom_line}")
                     
-                raw_result = "\n".join(sections)
+                raw_result = "\n\n".join(sections)
             else:
                 raw_result = str(result)
         except Exception as e:

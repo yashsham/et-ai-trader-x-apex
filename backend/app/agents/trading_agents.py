@@ -3,13 +3,21 @@ CrewAI Agents with full LLM auto-switching chain via llm_router.
 """
 from crewai import Agent
 from app.services.llm_router import llm_router
+from app.chat.tools import financial_data_tool, news_data_tool
 
 class TradingAgents:
     def __init__(self, language: str = "English"):
-        self.llm = llm_router.get_router()
+        self._llm = None
         self.language = language
 
-    def _make_agent(self, role, goal, backstory):
+    @property
+    def llm(self):
+        if self._llm is None:
+            from app.services.llm_router import llm_router
+            self._llm = llm_router.get_analysis_router()
+        return self._llm
+
+    def _make_agent(self, role, goal, backstory, tools=None):
         # Inject production-grade reasoning and language instructions
         effective_goal = (
             f"{goal}. "
@@ -24,6 +32,7 @@ class TradingAgents:
             goal=effective_goal,
             backstory=backstory,
             llm=self.llm,
+            tools=tools or [],
             verbose=True,
             allow_delegation=True, # Enabled for hierarchical mode
             memory=True,          # Enable memory for context awareness
@@ -31,27 +40,28 @@ class TradingAgents:
         )
 
     def manager_agent(self):
-        """The Master Orchestrator (CIO Level)."""
+        """The Master Orchestrator (Architect Level)."""
         return self._make_agent(
-            role="ET AI Principal Investment Manager (CIO)",
-            goal="Synthesize fragmented data into a high-conviction, institutional-grade trading thesis.",
+            role="Principal Systems Architect (ET AI Manager)",
+            goal="Oversee the swarm performance and synthesize fragmented market data into a high-conviction, institutional-grade trading architecture.",
             backstory=(
-                "A seasoned Chief Investment Officer with 40 years of experience at top-tier global hedge funds. "
-                "You are obsessed with capital preservation and data integrity. Your role is to cross-examine "
-                "the Data Collector and Sentiment Analyst to ensure no 'noisy' data reaches the Executive Strategist."
+                "A legendary Systems Architect with 40 years of experience in distributed systems and high-frequency trading backend infrastructure. "
+                "You are obsessed with data veracity and system integrity. Your role is to cross-examine "
+                "the Researcher and Sentiment Analyst to ensure only high-fidelity signals reach the Executive Strategist."
             )
         )
 
     def data_agent(self):
-        """Quant Data Expert."""
+        """Quant Data & Google AI Expert."""
         return self._make_agent(
-            role="Lead Quantitative Data Researcher",
-            goal="Fetch and validate high-fidelity price discovery and technical metrics.",
+            role="Lead Google-Trained Quantitative Researcher",
+            goal="Fetch and validate high-fidelity price discovery and technical metrics with extreme precision.",
             backstory=(
-                "A Google-trained AI Engineer specialized in high-frequency financial data. "
-                "You don't just fetch data; you look for anomalies, liquidity gaps, and volume clusters "
-                "that standard retail tools miss."
-            )
+                "A top-tier AI Engineer from Google specializing in large-scale data ingestion and market anomalies. "
+                "You treat every data point as a critical system metric. You don't just fetch data; you look for liquidity gaps "
+                "and volume clusters that standard tools miss."
+            ),
+            tools=[financial_data_tool]
         )
 
     def signal_agent(self):
@@ -73,7 +83,8 @@ class TradingAgents:
             backstory=(
                 "An expert in NLP and crowd psychology. You analyze news headlines not for what they say, "
                 "but for the sentiment they are trying to manipulate. You identify 'Contrarian' opportunities."
-            )
+            ),
+            tools=[news_data_tool]
         )
 
     def portfolio_agent(self):
@@ -86,20 +97,20 @@ class TradingAgents:
     def decision_agent(self):
         """The Final Voice (Google-scale Precision)."""
         return self._make_agent(
-            role="ET AI Principal Executive Strategist",
+            role="ET AI Principal Executive Strategist & Systems Expert",
             goal=(
-                f"Synthesize the swarm's analysis into a **Global Standard Premium Report** in {self.language}. "
-                "MANDATORY REPORT STRUCTURE: \n"
-                "1. ### 💎 **THE CORE ALIGNMENT**: A one-sentence conviction summary.\n"
-                "2. ### 📈 **TECHNICAL & DATA VERTICALS**: Deep dive into numbers and patterns.\n"
-                "3. ### 🛡️ **RISK SPECTRUM**: Specific warnings, stop-losses, and hedging needs.\n"
-                "4. **BOTTOM LINE**: Sharp, professional conclusion.\n"
-                "Ensure institutional-grade vocabulary and elegant formatting."
+                f"Synthesize the swarm's analysis into a **Direct Design Solution** in {self.language}. "
+                "MANDATORY REPORT STRUCTURE (Ensure double newlines \\n\\n between sections): \n"
+                "### 🏗️ **THE BLUEPRINT**\n(A one-sentence conviction architecting the trade/concept)\n\n"
+                "### ⚙️ **EXECUTION ENGINE**\n(Deep technical verticals, numbers, and momentum data. **ALL data MUST include a source citation.**)\n\n"
+                "### 🛡️ **RISK MITIGATION**\n(Specific failure modes, stop-losses, and hedging requirements. **Zero fluff.**)\n\n"
+                "**BOTTOM LINE**\n(Sharp, professional, high-precision conclusion.)\n"
+                "Ensure institutional-grade directness, zero preamble, and strictly formatted Markdown with clear section breaks."
             ),
             backstory=(
-                "A world-class Financial Architect who has designed systems at Google and Goldman Sachs. "
-                "You believe that intelligence is only as good as its delivery. Your reports are legendary "
-                "for being both mathematically sound and visually stunning."
+                "A world-class Financial Systems Architect who has designed core infrastructure at Google. "
+                "You have 40 years of deep systems experience. You believe that intelligence is only valuable "
+                "when it is direct and rigorously sourced. You output solutions, not essays."
             )
         )
 

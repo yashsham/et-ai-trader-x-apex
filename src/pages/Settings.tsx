@@ -148,10 +148,16 @@ const SettingsPage = () => {
                     onChange={handleChange}
                     className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-gold/50 transition-colors"
                   >
-                    <option value="UTC">UTC (Global)</option>
-                    <option value="EST">Eastern Time (US/Canada)</option>
-                    <option value="IST">Indian Standard Time (IST)</option>
-                    <option value="GMT">Greenwich Mean Time (GMT)</option>
+                    <option value="UTC" className="bg-[#0b101b]">UTC (Global)</option>
+                    <option value="Asia/Kolkata" className="bg-[#0b101b]">India (IST) - Asia/Kolkata</option>
+                    <option value="America/New_York" className="bg-[#0b101b]">US Eastern (EST/EDT)</option>
+                    <option value="America/Chicago" className="bg-[#0b101b]">US Central (CST/CDT)</option>
+                    <option value="America/Los_Angeles" className="bg-[#0b101b]">US Pacific (PST/PDT)</option>
+                    <option value="Europe/London" className="bg-[#0b101b]">UK (GMT/BST)</option>
+                    <option value="Europe/Paris" className="bg-[#0b101b]">Western Europe (CET/CEST)</option>
+                    <option value="Asia/Dubai" className="bg-[#0b101b]">UAE (GST) - Asia/Dubai</option>
+                    <option value="Asia/Singapore" className="bg-[#0b101b]">Singapore (SGT)</option>
+                    <option value="Australia/Sydney" className="bg-[#0b101b]">Australia (AEST/AEDT)</option>
                   </select>
                 </div>
 

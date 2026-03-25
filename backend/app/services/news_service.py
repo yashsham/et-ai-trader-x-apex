@@ -8,7 +8,8 @@ from app.crew.news_orchestrator import NewsCrew
 
 class NewsIntelligenceService:
     def __init__(self):
-        pass
+        from app.services.llm_router import llm_router
+        self.llm = llm_router.get_router()
 
     async def get_curated_news(self, symbol: Optional[str] = None, query: Optional[str] = None, language: str = "English"):
         """Fetch raw news and run the AI Editor Swarm for clustering and impact."""
@@ -25,33 +26,55 @@ class NewsIntelligenceService:
             # { id, headline, source, time, impact, summary, sector }
             from app.services.translation_service import translation_service
             
+            # Prepare data for batch-lite summarization (First 5 items get deep AI summary)
+            top_items = raw_news[:7]
             results = []
-            for i, item in enumerate(raw_news[:10]):
+            
+            for i, item in enumerate(top_items):
                 impact = "Medium"
-                title_lower = item.get("title", "").lower()
+                title = item.get("title", "Market Update")
+                desc = item.get("description") or item.get("content") or "No further details available."
+                
+                title_lower = title.lower()
                 if any(w in title_lower for w in ["high", "breaking", "plunge", "surge", "crash", "soar", "record"]):
                     impact = "High"
                 elif any(w in title_lower for w in ["steady", "holds", "unchanged"]):
                     impact = "Low"
                 
-                # Default values for missing keys
                 published = item.get("publishedAt") or item.get("published_at") or datetime.now().isoformat()
-                desc = item.get("description") or item.get("content") or "No further details available."
-                
-                # Format to a readable time if possible (e.g. "2 hours ago" or just the date)
                 try:
                     dt = datetime.fromisoformat(published.replace('Z', '+00:00'))
                     time_str = dt.strftime("%Y-%m-%d %H:%M")
                 except:
                     time_str = published[:10]
 
-                headline = item.get("title", "Market Update")
-                summary = desc[:150] + ("..." if len(desc) > 150 else "")
+                # --- AI INSTITUTIONAL SUMMARY ---
+                # We use a compact but high-conviction prompt
+                summary = desc[:200] + "..." # Fallback
+                try:
+                    from langchain_core.messages import HumanMessage
+                    prompt = f"""
+                    Act as a Principal Market Strategist (40y experience). 
+                    Summarize this news in {language} in 2-3 sentences. 
+                    Focus on institutional impact and hidden risks for an Indian investor.
+                    News Title: {title}
+                    Content: {desc[:500]}
+                    Return ONLY the summary. No preamble.
+                    """
+                    # We only do this for the top 5 to keep it fast
+                    if i < 5:
+                        ai_res = self.llm.invoke([HumanMessage(content=prompt)])
+                        summary = ai_res.content.strip()
+                except Exception as ex:
+                    print(f"[NewsService] LLM Summary failed for item {i}: {ex}")
 
-                # ── DYNAMIC TRANSLATION ──
+                # ── DYNAMIC TRANSLATION (If not already handled by LLM) ──
+                headline = title
                 if language != "English":
-                    headline = translation_service.translate(headline, language)
-                    summary = translation_service.translate(summary, language)
+                    headline = translation_service.translate(title, language)
+                    # If LLM failed, we translate the fallback summary
+                    if "..." in summary:
+                        summary = translation_service.translate(summary, language)
 
                 results.append({
                     "id": i,
@@ -61,7 +84,7 @@ class NewsIntelligenceService:
                     "sector": "Broad Market" if not symbol else symbol,
                     "impact": impact,
                     "summary": summary,
-                    "url": item.get("url", "#")
+                    "url": item.get("url", "#").strip()
                 })
             return results
 

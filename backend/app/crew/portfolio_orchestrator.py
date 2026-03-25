@@ -4,8 +4,9 @@ from app.core.response_normalizer import response_normalizer
 import json
 
 class PortfolioCrew:
-    def __init__(self, portfolio_data: dict):
+    def __init__(self, portfolio_data: dict, language: str = "English"):
         self.portfolio_data = portfolio_data
+        self.language = language
         self.agents = TradingAgents()
 
     def run(self):

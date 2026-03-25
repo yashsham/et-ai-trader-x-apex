@@ -105,7 +105,7 @@ class TradingCrew:
         self.tasks = TradingTasks()
         self.language = language
 
-    def run(self):
+    async def run(self):
         # Initialize Agents
         data_agent = self.agents.data_agent()
         signal_agent = self.agents.signal_agent()
@@ -127,7 +127,7 @@ class TradingCrew:
             verbose=True
         )
 
-        crew_result = crew.kickoff()
+        crew_result = await crew.kickoff_async()
         raw_text = str(crew_result)
 
         # ── MULTI-STRATEGY PARSER ──
@@ -139,11 +139,7 @@ class TradingCrew:
             if reasoning:
                 final_data["reasoning"] = translation_service.translate(reasoning, self.language)
 
-        # ── ENSURE FRONTEND COMPATIBILITY ──
-        # Frontend AutoAnalyzeEngine looks for: raw.data.parsed_data or raw.data
-        output_payload = {"parsed_data": final_data, **final_data}
-
-        # Persist to Supabase
+        # Persist to Supabase (Non-blocking)
         try:
             db_service.save_analysis(
                 symbol=self.symbol,
@@ -153,4 +149,11 @@ class TradingCrew:
         except Exception as e:
             logger.warning(f"[TradingCrew] DB save failed (non-critical): {e}")
 
-        return {"status": "success", "data": output_payload, "confidence": final_data.get("confidence")}
+        # ── ENSURE FRONTEND COMPATIBILITY ──
+        # Return a flat, highly compatible payload
+        return {
+            "parsed_data": final_data,
+            **final_data,
+            "status": "success",
+            "confidence": final_data.get("confidence", 0.85)
+        }

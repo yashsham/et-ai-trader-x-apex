@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { API_BASE_URL } from "@/lib/api-config";
-import { ArrowUpRight, Clock, Loader2 } from "lucide-react";
+import { ArrowUpRight, Clock, Loader2, Sparkles } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface NewsItem {
@@ -87,21 +87,30 @@ const MarketNews = () => {
                       {item.headline}
                     </h3>
 
-                    <p className="text-xs text-muted-foreground leading-relaxed mb-3 line-clamp-2">
+                    <p className="text-sm text-muted-foreground/80 leading-relaxed mb-4 italic border-l-2 border-gold/30 pl-3">
                       {item.summary}
                     </p>
 
-                    <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                      <span>{item.source}</span>
-                      <span>·</span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {item.time}
-                      </span>
+                    <div className="flex items-center justify-between mt-auto pt-2">
+                      <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                        <span className="font-semibold text-foreground/60">{item.source}</span>
+                        <span>·</span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {item.time}
+                        </span>
+                        <span>·</span>
+                        <span className="text-gold/50 flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          AI Summarized
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-1 text-[10px] text-gold font-bold uppercase tracking-wider group-hover:translate-x-1 transition-transform">
+                        Read Source <ArrowUpRight className="w-3 h-3" />
+                      </div>
                     </div>
                   </div>
-
-                  <ArrowUpRight className="w-4 h-4 text-muted-foreground group-hover:text-gold transition-colors shrink-0 mt-1" />
                 </div>
               </a>
             ))}

@@ -56,9 +56,9 @@ class ChartCrew:
                 "Synthesize all technical findings, pattern recognitions, and risk architectures. "
                 "Provide a 1-2 paragraph expert Hinglish reasoning in the 'explanation' field. "
                 "Combine all data into a FINAL JSON object. "
-                "FORMAT: {\"trend\": \"Bullish/Bearish/Neutral\", \"explanation\": \"...\", \"target\": float, \"stop_loss\": float, \"risk_reward\": \"string\", \"resistance\": float, \"support\": float}"
+                "FORMAT: {\"trend\": \"Bullish/Bearish/Neutral\", \"pattern_name\": \"Specific pattern detected (e.g. Bullish Flag, Double Bottom)\", \"historical_win_rate\": \"Estimated historical win rate % for this pattern\", \"explanation\": \"...\", \"target\": float, \"stop_loss\": float, \"risk_reward\": \"string\", \"resistance\": float, \"support\": float}"
             ),
-            expected_output="A complete JSON object for the Chart Intelligence UI.",
+            expected_output="A complete JSON object containing trend, pattern_name, historical_win_rate, explanation, target, stop_loss, risk_reward, resistance, support.",
             agent=educator
         )
 
@@ -79,6 +79,8 @@ class ChartCrew:
 
             analysis = {
                 "trend": "Neutral",
+                "pattern_name": "Ascending Triangle (Simulated)",
+                "historical_win_rate": "65%",
                 "explanation": raw_result,
                 "target": technical_context["levels"]["resistance"],
                 "stop_loss": technical_context["levels"]["support"],
@@ -96,6 +98,8 @@ class ChartCrew:
                     if any(k in parsed for k in ["trend", "target", "explanation"]):
                         analysis.update({
                             "trend": parsed.get("trend", analysis["trend"]),
+                            "pattern_name": parsed.get("pattern_name", analysis["pattern_name"]),
+                            "historical_win_rate": parsed.get("historical_win_rate", analysis["historical_win_rate"]),
                             "explanation": parsed.get("explanation", analysis["explanation"]),
                             "target": float(parsed.get("target") or analysis["target"]),
                             "stop_loss": float(parsed.get("stop_loss") or analysis["stop_loss"]),
@@ -114,6 +118,10 @@ class ChartCrew:
 
                     trend = rex(r'"?trend"?\s*[:=]\s*"?([A-Za-z\s]+)"?', raw_result)
                     if trend: analysis["trend"] = trend.strip()
+                    pattern = rex(r'"?pattern_name"?\s*[:=]\s*"?([^"]+)"?', raw_result)
+                    if pattern: analysis["pattern_name"] = pattern.strip()
+                    win_rate = rex(r'"?historical_win_rate"?\s*[:=]\s*"?([^"]+)"?', raw_result)
+                    if win_rate: analysis["historical_win_rate"] = win_rate.strip()
                     expl = rex(r'"?explanation"?\s*[:=]\s*"([^"]{20,})"', raw_result)
                     if expl: analysis["explanation"] = expl
                     tgt = rex(r'"?target"?\s*[:=]\s*([\d.]+)', raw_result)

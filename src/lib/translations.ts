@@ -26,10 +26,10 @@ export const translations = {
     // Hero / Index
     phase: "Phase",
     live_stream: "Live Data Stream",
-    decision_agent: "Alpha Decision Agent",
-    autonomous_reasoning: "Autonomous AI Reasoning",
+    decision_agent: "Alpha Decision Engine",
+    autonomous_reasoning: "Institutional risk-adjusted execution logic for precision entry/exit strategies.",
     autonomous_desc: "Processing real-time market signals across multiple sectors using dedicated agentic workflows.",
-    mission_sub: "Mission Critical Alpha Generation",
+    mission_sub: "Advanced synthesis engine cross-referencing technical indicators, block deals, and global news catalysts.",
     today: "Today",
     
     // AISignalCard
@@ -86,7 +86,7 @@ export const translations = {
     stop_loss: "Stop Loss",
     recommended_size: "Recommended Size",
     simulate_trade: "Simulate Trade",
-    reset_agent: "Reset Agent",
+    reset_agent: "Reset Analysis",
     target_symbol_placeholder: "Target Symbol (e.g. RELIANCE.NS)",
     strong_buy: "Strong Buy Recommendation",
     sell_avoid: "Sell/Avoid Recommendation",
@@ -101,6 +101,10 @@ export const translations = {
     live_movers: "Live Movers",
     high_confidence: "High-Confidence",
     filters: "Filters",
+    all: "All",
+    signal: "Signal",
+    min_confidence: "Min Confidence",
+    clear_filters: "Clear Filters",
 
     // OpportunityRadar
     radar_desc: "Live AI-detected trading opportunities from your history",
@@ -242,9 +246,9 @@ export const translations = {
     phase: "चरण",
     live_stream: "लाइव डेटा स्ट्रीम",
     decision_agent: "अल्फा निर्णय एजेंट",
-    autonomous_reasoning: "स्वायत्त एआई तर्क",
+    autonomous_reasoning: "संस्थागत-स्तर के जोखिम नियंत्रणों के साथ जोखिम-समायोजित प्रवेश/निकास रणनीतियों का प्रबंधन करने वाला उच्च-सटीक निष्पादन तर्क।",
     autonomous_desc: "समर्पित एजेंटिक वर्कफ़्लो का उपयोग करके कई क्षेत्रों में रीयल-टाइम मार्केट सिग्नल संसाधित करना।",
-    mission_sub: "मिशन क्रिटिकल अल्फा जेनरेशन",
+    mission_sub: "तकनीकी संकेतकों, ब्लॉक सौदों और वैश्विक समाचार उत्प्रेरकों को रीयल-टाइम में क्रॉस-रेफरेंस करने वाला संस्थागत संश्लेषण इंजन।",
     today: "आज",
     high_conviction_signal: "उच्च विश्वास संकेत",
     projected_return: "अनुमानित रिटर्न",
@@ -306,6 +310,10 @@ export const translations = {
     live_movers: "लाइव मूवर्स",
     high_confidence: "उच्च-विश्वास",
     filters: "फ़िल्टर",
+    all: "सभी",
+    signal: "संकेत",
+    min_confidence: "न्यूनतम आत्मविश्वास",
+    clear_filters: "फ़िल्टर साफ़ करें",
     radar_desc: "आपके इतिहास से लाइव एआई-संसूचित ट्रेडिंग अवसर",
     syncing_radar: "लाइव रडार सिंक हो रहा है...",
     active_signals: "सक्रिय संकेत",
@@ -502,6 +510,10 @@ export const translations = {
     live_movers: "લાઇવ મૂવર્સ",
     high_confidence: "ઉચ્ચ-વિશ્વાસ",
     filters: "ફિલ્ટર્સ",
+    all: "બધા",
+    signal: "સિગ્નલ",
+    min_confidence: "ન્યૂનતમ આત્મવિશ્વાસ",
+    clear_filters: "ફિલ્ટર્સ સાફ કરો",
 
     // OpportunityRadar
     radar_desc: "તમારા ઇતિહાસમાંથી લાઇવ AI-ડિટેક્ટ કરેલી ટ્રેડિંગ તકો",
@@ -648,9 +660,9 @@ export const translations = {
     phase: "टप्पा",
     live_stream: "लाइव्ह डेटा स्ट्रीम",
     decision_agent: "अल्फा निर्णय एजंट",
-    autonomous_reasoning: "स्वायत्त AI तर्क",
+    autonomous_reasoning: "संस्थात्मक-दर्जाच्या जोखीम नियंत्रणांसह जोखीम-समायोजित एंट्री/एक्झिट धोरणे व्यवस्थापित करणारे उच्च-परिशुद्धता अंमलबजावणी तर्क.",
     autonomous_desc: "समर्पित एजंटिक वर्कफ्लो वापरून एकाधिक क्षेत्रांमध्ये रिअल-टाइम मार्केट सिग्नल्सवर प्रक्रिया करणे.",
-    mission_sub: "मिशन क्रिटिकल अल्फा जनरेशन",
+    mission_sub: "तांत्रिक निर्देशक, ब्लॉक डील्स आणि जागतिक बातम्यांच्या उत्प्रेरकांचा रिअल-टाइममध्ये क्रॉस-रेफरन्स देणारे संस्थात्मक संश्लेषण इंजिन.",
     today: "आज",
     
     // AISignalCard
@@ -722,6 +734,10 @@ export const translations = {
     live_movers: "लाइव्ह मूव्हर्स",
     high_confidence: "उच्च-विश्वास",
     filters: "फिल्टर्स",
+    all: "सर्व",
+    signal: "सिग्नल",
+    min_confidence: "किमान आत्मविश्वास",
+    clear_filters: "फिल्टर्स साफ करा",
 
     // OpportunityRadar
     radar_desc: "तुमच्या इतिहासातील लाइव्ह AI-डिलेक्ट केलेल्या ट्रेडिंग संधी",

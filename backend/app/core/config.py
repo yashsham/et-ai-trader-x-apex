@@ -29,8 +29,8 @@ class Settings(BaseSettings):
     OPENROUTER_API_KEY: Optional[str] = None
 
     # --- Model Selection ---
-    MODEL: str = "groq/llama-3.3-70b-versatile"
-    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    MODEL: str = "groq/llama-3.1-70b-versatile"
+    GROQ_MODEL: str = "llama-3.1-70b-versatile"
     OPENROUTER_MODEL: str = "openai/gpt-4o-mini"
 
     # --- Finance & News APIs ---

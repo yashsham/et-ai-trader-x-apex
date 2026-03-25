@@ -29,15 +29,15 @@ class DashboardCrew:
         
         task = Task(
             description=(
-                f"Analyze this real-time market data: {context_str}. "
-                f"Synthesize it into a sharp 'Executive Focus' summary in {self.language} for the user. "
-                "Highlight the single most important 'Priority Action' (e.g., 'Watch for Nifty breakdown', 'IT sector rallying'). "
-                "Keep it professional, ultra-concise, and actionable."
+                f"You are the CIO of ET AI Trader. Analyze this data: {context_str}. "
+                f"Synthesize a sharp 2-3 sentence 'Executive Focus' in {self.language}. "
+                "Identify the most critical 'Priority Action' for the user right now. "
+                "Additionally, provide a 'reasoning' block (chain of thought) and 'key_metrics' (top supporting facts).\n"
+                "You MUST return a valid JSON object. No preamble, no markdown, no explanation.\n\n"
+                'Format: {"summary": "...", "priority_action": "...", "reasoning": "...", "key_metrics": ["...", "..."], "sentiment_analysis": "..."}'
             ),
             expected_output=(
-                "A JSON object with two fields: "
-                f"'summary': (2-3 sentences of insight in {self.language}), "
-                "'priority_action': (A short string like 'WATCH_BREAKOUT' or 'ACCUMULATE_GAINERS')"
+                "A detailed JSON object with summary, priority_action, reasoning, key_metrics, and sentiment_analysis."
             ),
             agent=exec_agent
         )

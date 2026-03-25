@@ -8,6 +8,7 @@ import { AIDecisionStrip } from "@/components/dashboard/AIDecisionStrip";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSearchParams } from "react-router-dom";
 
 interface RawAnalysis {
   id: number;
@@ -24,6 +25,7 @@ const SignalHistory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSignal, setSelectedSignal] = useState<SignalData | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     async function fetchHistory() {
@@ -31,7 +33,7 @@ const SignalHistory = () => {
         const response = await fetch(`${API_BASE_URL}/api/v1/history?limit=50`);
         const data = await response.json();
         
-        if (data.status === "success") {
+        if (data.success) {
           const results: RawAnalysis[] = data.data.results;
           
           const mapped: SignalData[] = results.map((r, index) => {
@@ -79,10 +81,32 @@ const SignalHistory = () => {
         toast.error("Failed to sync Signal History");
       } finally {
         setLoading(false);
+        
+        // Handle deep-linking after data is loaded
+        const targetId = searchParams.get("id");
+        const targetSymbol = searchParams.get("symbol");
+        
+        if (targetSymbol) {
+          setSearchTerm(targetSymbol);
+        }
       }
     }
     fetchHistory();
-  }, []);
+  }, [searchParams]);
+
+  // Second effect to auto-open modal once signals are loaded and filtered
+  useEffect(() => {
+    if (!loading && signals.length > 0) {
+      const targetId = searchParams.get("id");
+      if (targetId) {
+        const signal = signals.find(s => String(s.id) === targetId);
+        if (signal) {
+          setSelectedSignal(signal);
+          setModalOpen(true);
+        }
+      }
+    }
+  }, [loading, signals, searchParams]);
 
   const filteredSignals = signals.filter(s => 
     s.stock.toLowerCase().includes(searchTerm.toLowerCase()) ||
