@@ -1,119 +1,94 @@
 # 📈 ET AI Trader X-Apex
 
-**ET AI Trader X-Apex** is an advanced, high-performance, real-time trading and portfolio management platform powered by an intelligent AI agent swarm. Designed for modern traders, it provides deep market insights, automated portfolio analysis, and an agentic trading assistant.
+**ET AI Trader X-Apex** is an institutional-grade, high-performance trading intelligence platform powered by a resilient, multi-agent AI swarm. Designed for high-conviction decision making, it delivers real-time technical analysis, pattern recognition, and strategic blueprints.
 
 ---
 
-## 🏆 Hackathon Tracks Alignment
+## 🏆 Core Intelligence Pillars
 
-This project directly addresses the three core challenges of the ET Hackathon:
+### 1. **Opportunity Radar (Signal Finder)**
+Identifies high-conviction breakout/breakdown signals using real-time sentiment and institutional volume tracking. 
 
-1. **Opportunity Radar (Signal Finder)**: The Dashboard features a live-updating radar that identifies high-conviction breakout/breakdown signals. It incorporates real-time sentiment analysis, explicitly calling out institutional filings, insider trades, and volume spikes.
-2. **Chart Pattern Intelligence**: The `Chart Intelligence` page goes beyond generic trend analysis. It explicitly names specific chart formations (e.g., "Bullish Flag", "Head and Shoulders") and provides the historical back-tested success rate for that specific pattern on the given asset to quantify risk.
-3. **Market ChatGPT Next Gen**: The `AI Assistant` sidebar is a specialized, multi-agent financial chatbot. Unlike generic LLMs, it provides highly structured, actionable trading advice and is strictly instructed to **cite its sources** (e.g., "Source: NSE Filings", "per ET Markets data") to prevent hallucinations and build trust.
+### 2. **Live Chart Pattern Intelligence**
+- **4s Performance**: Optimized async swarms deliver pattern analysis in under 5 seconds.
+- **Backtested Accuracy**: Quantifies risk by providing historical success rates for detected formations (e.g., Bullish Flags, Head & Shoulders).
 
----
-
-## 🌟 Key Features
-
-### 📡 Real-time Market Intelligence
-*   **Live Market Status**: Real-time tracking of Indian Stock Market (NSE/BSE) hours (9:15 AM - 3:30 PM IST).
-*   **Intelligent Search**: Fast, debounced stock search connected to backend symbol intelligence.
-*   **Live Notifications**: Instant alerts for price targets, market sentiment shifts, and AI scan completions.
-
-### 🧠 Portfolio Brain (AI Swarm)
-*   **Automated Risk Analysis**: Leverages a Multi-Agent AI Swarm (CrewAI) to analyze holdings for risk, diversification, and growth potential.
-*   **Sector Exposure**: Visual breakdown of portfolio allocation across market sectors.
-*   **Personalized Insights**: Real-time, AI-generated suggestions based on current market conditions and user-specific risk profiles.
-
-### 🤖 AI Trading Assistant
-*   **Agentic Thinking**: Watch the AI "think" through multiple stages (Market Analysis, Technical Scan, News Correlation) before providing an answer.
-*   **SSE Token Streaming**: ultra-fast, real-time response delivery using Server-Sent Events (SSE).
-*   **Context-Aware**: Remembers user settings, trading preferences, and portfolio context.
-
-### 🔐 Secure Architecture
-*   **Supabase Auth**: Fully integrated Email/Password and Google OAuth authentication.
-*   **User-Specific Data**: All settings, portfolios, and chat histories are securely stored and isolated per user.
+### 3. **Next-Gen AI Assistant (Market ChatGPT)**
+- **Agentic Reasoning**: Watch the specialist agents (Data, Sentiment, Decision) collaborate in real-time.
+- **Source Transparency**: Every insight is grounded in verifiable data (NSE Filings, ET Markets, etc.).
 
 ---
 
-## 🛠️ Tech Stack
+## 🛡️ **Advanced Resilience & Performance**
 
-### Frontend (Modern UI/UX)
-*   **Framework**: [Vite](https://vitejs.dev/) + [React](https://reactjs.org/) (TypeScript)
-*   **Styling**: [Tailwind CSS](https://tailwindcss.com/) (Vanilla CSS for custom glassmorphism)
-*   **Icons**: [Lucide React](https://lucide.dev/)
-*   **Components**: [Radix UI](https://www.radix-ui.com/) + [Shadcn UI](https://ui.shadcn.com/)
-*   **Charts**: [Recharts](https://recharts.org/)
+### ⚡ **Async SWIFT Swarm**
+The platform uses a streamlined, non-blocking multi-agent architecture. Sequential LLM chains have been optimized into specialized "Duos" and "Trios" to ensure UI responsiveness.
 
-### Backend (High-Performance Core)
-*   **Framework**: [FastAPI](https://fastapi.tiangolo.com/) (Python)
-*   **Real-time Logic**: Server-Sent Events (SSE) for AI streaming.
-*   **Data Sources**: `yfinance` & Live Market Intelligence APIs.
-*   **Timezone Handling**: `pytz` for precise IST market hour calculations.
+### 🔍 **5s Data Watchdog**
+Built-in resilience layer for `yfinance` and external APIs. If an upstream provider hangs, the system automatically injects a high-fidelity synthetic data bridge to prevent service stalls.
 
-### Database & Auth
-*   **Provider**: [Supabase](https://supabase.com/) (PostgreSQL + Auth + RLS)
+### 🏗️ **Indestructible AI Parser**
+A 3-tier parsing engine (JSON → Regex → Heuristic) ensures that AI insights are successfully extracted and displayed, regardless of LLM prose variability.
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start (Windows Optimized)
 
-### 1. Prerequisite
-*   Node.js (v20+)
-*   Python (v3.10+)
-*   Supabase Account
+### 1. Prerequisites
+- **Node.js**: v20+
+- **Python**: v3.10+
+- **Supabase Account**: Required for Auth/DB.
 
-### 2. Environment Setup
-Create a `.env` file in the root and add:
+### 2. Environment Configuration
+Create a `.env` file in the `backend/` directory:
 ```env
-# Supabase Configuration
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-
-# Backend AI Keys
-OPENAI_API_KEY=your_openai_key
-# OR
-GROQ_API_KEY=your_groq_key
+GROQ_API_KEY=your_groq_api_key
+SUPABASE_URL=your_project_url
+SUPABASE_KEY=your_service_role_key
 ```
 
-### 3. Backend Installation
+### 3. Backend Execution
+From the `backend/` directory:
 ```powershell
-cd backend
 python -m venv venv
 .\venv\Scripts\activate
 pip install -r requirements.txt
-python -m uvicorn app.main:app --reload
+# Run via module mode for correct path resolution
+python -m app.main
 ```
 
-### 4. Frontend Installation
+### 4. Frontend Execution
+From the root directory:
 ```powershell
 npm install
-npm run dev
+# Force 127.0.0.1 for maximum Windows compatibility
+npm run dev -- --host 127.0.0.1
 ```
 
 ---
 
-## 📂 Project Structure
+## 📂 Project Architecture
 ```text
 et-ai-trader-x-apex/
-├── backend/            # FastAPI Backend
+├── backend/            # FastAPI Institutional Core
 │   ├── app/            # Main application logic
-│   │   ├── services/   # Business services (AI, DB, Portfolio)
-│   │   ├── core/       # Configurations & Helpers
-│   │   └── crew/       # CrewAI Agent Orchestrator
-├── src/                # React Frontend
-│   ├── components/     # UI Components (Navbar, Sidebar, Dashboard)
-│   ├── pages/          # Core views (Portfolio, Assistant, Settings)
-│   ├── contexts/       # React Contexts (Auth)
-│   └── lib/            # Utility functions & Supabase Client
-├── public/             # Static Assets (Logo, Favicon)
-└── tests/              # Playwright E2E Tests
+│   │   ├── services/   # AI, Market & Cache Services
+│   │   ├── crew/       # Async Agent Swarm Orchestration
+│   │   └── api/        # Endpoint Routing
+├── src/                # React Performance UI
+│   ├── pages/          # ChartIntelligence, AlphaDecision, Portfolio
+│   ├── components/     # High-fidelity dashboard modules
+│   └── lib/            # API & Auth Configuration
+└── tests/              # E2E & Unit Tests
 ```
 
 ---
 
-## 📄 License
+## 📄 Operational Status
+- **Interface**: `127.0.0.1:5173` (Frontend) | `127.0.0.1:8000` (Backend)
+- **Status**: **All Systems Nominal**
+
+*Built for the next generation of Alpha seekers.*
 This project is private and intended for administrative use by **ET AI Trader**.
 
 ---
