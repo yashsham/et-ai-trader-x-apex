@@ -14,20 +14,27 @@ import re
 
 import logging
 logging.basicConfig(level=logging.INFO)
-print("Starting ET AI Trader X Backend...")
+print("Starting ET AI Trader X Backend...", flush=True)
 
 load_dotenv()
 from collections import defaultdict
 from typing import List, Dict, Any, Optional
 
+print("[Main] Loading settings...", flush=True)
 from app.core.config import settings
+print("[Main] Loading responses...", flush=True)
 from app.models.responses import create_success_response, create_error_response, StandardResponse
+print("[Main] Loading orchestrator...", flush=True)
 from app.crew.orchestrator import TradingCrew
+print("[Main] Loading audit logger...", flush=True)
 from app.core.audit_logger import audit_logger
+print("[Main] Loading injection scanner...", flush=True)
 from app.core.injection_scanner import injection_scanner
+print("[Main] Loading routers...", flush=True)
 from app.api.endpoints.charts import router as charts_router
 from app.api.endpoints.chat import router as chat_router
 
+print("[Main] Loading services...", flush=True)
 from app.services.db_service import db_service
 from app.services.dashboard_service import dashboard_service
 from app.services.radar_service import radar_service
@@ -35,6 +42,7 @@ from app.services.portfolio_service import portfolio_brain_service
 from app.services.chat_service import chat_service
 from app.services.news_service import news_intelligence_service
 from app.services.cache_service import cache_service
+print("[Main] Services loaded.", flush=True)
 
 app = FastAPI(
     title="ET AI Trader X — Intelligence API",
