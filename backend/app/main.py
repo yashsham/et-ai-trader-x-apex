@@ -12,6 +12,10 @@ from dotenv import load_dotenv
 from datetime import datetime
 import re
 
+import logging
+logging.basicConfig(level=logging.INFO)
+print("Starting ET AI Trader X Backend...")
+
 load_dotenv()
 from collections import defaultdict
 from typing import List, Dict, Any, Optional
@@ -155,8 +159,8 @@ class ChatRequest(BaseModel):
 
 # ── Core Routes ───────────────────────────────────────────────────
 @app.get("/health")
-def health_check():
-    return create_success_response({"status": "healthy", "service": "ET AI Trader X Intelligence Engine v2"})
+def health():
+    return {"status": "ok"}
 
 @app.get("/ping")
 def ping():

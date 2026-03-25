@@ -13,6 +13,8 @@ pytz==2025.1
 #redis==7.3.0
 
 # LLM providers
+lc-google-api-core==2.24.1
+google-generativeai==0.8.4
 langchain-openai==0.3.5
 langchain-google-genai==2.0.10
 langchain-groq==0.2.4
