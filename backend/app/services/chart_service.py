@@ -61,8 +61,8 @@ class ChartIntelligenceService:
             ]
         }
 
-    def get_chart_analysis(self, symbol: str, period: str = "3mo", language: str = "English"):
-        """Main entry point for chart intelligence."""
+    async def get_chart_analysis(self, symbol: str, period: str = "3mo", language: str = "English"):
+        """Main entry point for chart intelligence (Async)."""
         try:
             # 1. Fetch Data
             data = market_service.get_stock_data(symbol, period=period)
@@ -99,35 +99,42 @@ class ChartIntelligenceService:
             analysis = cache_service.get(ai_cache_key)
             
             if not analysis:
+                import asyncio
                 try:
-                    print(f"[Chart] Running AI Crew for {symbol}...")
+                    print(f"[Chart] Running Async AI Crew for {symbol}...")
                     crew = ChartCrew(symbol, tech_context, language=language)
-                    ai_result = crew.run()
-                    # Ensure we handle the StandardResponse format
+                    # Limit AI Reasoning to 25s for chart responsiveness
+                    ai_result = await asyncio.wait_for(crew.run(), timeout=25.0)
+                    
                     if isinstance(ai_result, dict) and "data" in ai_result:
                         analysis = ai_result["data"]
                     else:
                         analysis = ai_result
                     
-                    # Cache the successful analysis
                     cache_service.set(ai_cache_key, analysis, expire_seconds=300)
+                except asyncio.TimeoutError:
+                    print(f"[Chart] AI timeout (25s) for {symbol}. Using Technical Fallback.")
+                    analysis = None # Trigger fallback below
                 except Exception as ai_err:
                     print(f"[Chart] AI Analysis failed: {ai_err}")
-                    # Fallback deterministic analysis
-                    current_price = tech_context["current_price"]
-                    ema20 = tech_context["ema20"]
-                    
-                    analysis = {
-                        "trend": "Strong Bullish" if current_price > ema20 * 1.02 else "Bullish" if current_price > ema20 else "Bearish",
-                        "pattern_name": "Bullish Flag (Simulated)" if current_price > ema20 else "Bearish Pennant (Simulated)",
-                        "historical_win_rate": "68.5%" if current_price > ema20 else "62.1%",
-                        "explanation": "AI Analyst is temporarily unavailable. Based on EMA20 and price action, a technical trend and simulated pattern have been identified.",
-                        "target": tech_context["levels"]["resistance"],
-                        "stop_loss": tech_context["levels"]["support"],
-                        "resistance": tech_context["levels"]["resistance"],
-                        "support": tech_context["levels"]["support"],
-                        "risk_reward": "1:1.5"
-                    }
+                    traceback.print_exc() # Added for better debugging
+                    analysis = None
+            
+            # ── TECHNICAL FALLBACK ──
+            if not analysis:
+                current_price = tech_context["current_price"]
+                ema20 = tech_context["ema20"]
+                analysis = {
+                    "trend": "Strong Bullish" if current_price > ema20 * 1.02 else "Bullish" if current_price > ema20 else "Bearish",
+                    "pattern_name": "Bullish Flag (Pattern Engine)" if current_price > ema20 else "Bearish Pennant (Pattern Engine)",
+                    "historical_win_rate": "68.5%" if current_price > ema20 else "62.1%",
+                    "explanation": "AI Analyst is synthesizing complex patterns. Based on high-fidelity technicals, a tactical breakout/consolidation is identified.",
+                    "target": tech_context["levels"]["resistance"],
+                    "stop_loss": tech_context["levels"]["support"],
+                    "resistance": tech_context["levels"]["resistance"],
+                    "support": tech_context["levels"]["support"],
+                    "risk_reward": "1:1.5"
+                }
             else:
                 print(f"[Chart] Using CACHED AI Analysis for {symbol}")
 

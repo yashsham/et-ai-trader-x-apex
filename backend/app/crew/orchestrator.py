@@ -106,23 +106,20 @@ class TradingCrew:
         self.language = language
 
     async def run(self):
-        # Initialize Agents
+        # Initialize 3-Agent SWIFT Swarm (Google Architect Style)
         data_agent = self.agents.data_agent()
-        signal_agent = self.agents.signal_agent()
         sentiment_agent = self.agents.sentiment_agent()
-        portfolio_agent = self.agents.portfolio_agent()
         decision_agent = self.agents.decision_agent()
 
-        # Initialize Tasks
+        # Initialize Tasks (Consolidated for speed)
         data_task = self.tasks.data_task(data_agent, self.symbol)
-        signal_task = self.tasks.signal_task(signal_agent, self.symbol)
         sentiment_task = self.tasks.sentiment_task(sentiment_agent, self.symbol)
-        portfolio_task = self.tasks.portfolio_task(portfolio_agent, self.symbol, self.portfolio)
+        # Decision agent now synthesizes Technical + Sentiment + Portfolio internally
         decision_task = self.tasks.decision_task(decision_agent, self.symbol)
 
         crew = Crew(
-            agents=[data_agent, signal_agent, sentiment_agent, portfolio_agent, decision_agent],
-            tasks=[data_task, signal_task, sentiment_task, portfolio_task, decision_task],
+            agents=[data_agent, sentiment_agent, decision_agent],
+            tasks=[data_task, sentiment_task, decision_task],
             process=Process.sequential,
             verbose=True
         )

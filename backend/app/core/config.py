@@ -18,9 +18,11 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins_list(self) -> List[str]:
+        # Always allow common dev origins + wildcard
+        base = ["http://localhost:8080", "http://127.0.0.1:8080"]
         if not self.CORS_ORIGINS or self.CORS_ORIGINS == "*":
             return ["*"]
-        return [i.strip() for i in self.CORS_ORIGINS.split(",")]
+        return base + [i.strip() for i in self.CORS_ORIGINS.split(",")]
 
     # --- LLM Provider Keys (all optional, at least one required) ---
     OPENAI_API_KEY: Optional[str] = None

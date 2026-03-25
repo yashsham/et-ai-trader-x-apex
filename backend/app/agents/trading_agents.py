@@ -14,7 +14,8 @@ class TradingAgents:
     def llm(self):
         if self._llm is None:
             from app.services.llm_router import llm_router
-            self._llm = llm_router.get_analysis_router()
+            # Use string-based routing for CrewAI to bypass LiteLLM/LangChain naming conflicts
+            self._llm = llm_router.get_analysis_model()
         return self._llm
 
     def _make_agent(self, role, goal, backstory, tools=None):
@@ -34,9 +35,9 @@ class TradingAgents:
             llm=self.llm,
             tools=tools or [],
             verbose=True,
-            allow_delegation=True, # Enabled for hierarchical mode
-            memory=True,          # Enable memory for context awareness
-            cache=True            # Enable native CrewAI caching
+            allow_delegation=False, # PRODUCTION HARDENING: Prevent infinite discussion loops
+            memory=True,            # Context retention
+            cache=True              # Reduce redundant LLM calls
         )
 
     def manager_agent(self):

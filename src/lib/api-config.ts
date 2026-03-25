@@ -6,7 +6,7 @@
 // If deploying to GitHub Pages, the frontend will be on a different domain than the backend.
 // We use VITE_API_URL environment variable to point to the Render backend.
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 /**
  * Helper to build full API URLs.

@@ -10,68 +10,43 @@ class ChartCrew:
         self.language = language
         self.agents = TradingAgents(language=language)
 
-    def run(self):
-        # Initialize specialized agents
-        indicator_specialist = self.agents.indicator_agent()
+    async def run(self):
+        # Initialize specialized agents (Streamlined for 2-agent SWIFT performance)
         pattern_expert = self.agents.pattern_agent()
-        trade_architect = self.agents.risk_reward_agent()
         educator = self.agents.explanation_agent()
 
-        # Task 1: Indicator Analysis
-        indicator_task = Task(
-            description=(
-                f"Analyze the following technical indicators for {self.symbol}: "
-                f"{json.dumps(self.technical_context)}. "
-                "Identify if the stock is overbought/oversold and if there's a momentum crossover."
-            ),
-            expected_output="A summary of RSI, MACD, and EMA alignment (Bullish/Bearish/Neutral).",
-            agent=indicator_specialist
-        )
-
-        # Task 2: Pattern Recognition
+        # Task 1: Technical & Pattern Synthesis
         pattern_task = Task(
             description=(
-                f"Look at the recent price action for {self.symbol}. "
-                "Detect if we are in a breakout, reversal, or consolidation phase. "
-                "Identify any specific candlestick patterns like Engulfing, Hammer, or Doji."
+                f"Analyze the technical context for {self.symbol}: {json.dumps(self.technical_context)}. "
+                "Identify the primary chart pattern, RSI/MACD momentum, and key support/resistance levels. "
             ),
-            expected_output="Identification of the current chart pattern and its reliability score.",
+            expected_output="A technical summary of patterns and indicator alignment.",
             agent=pattern_expert
         )
 
-        # Task 3: Risk/Reward Architecture
-        risk_task = Task(
-            description=(
-                f"Based on the indicators and patterns, design a trade setup for {self.symbol}. "
-                "Determine the exact Target, Stop Loss, and Risk:Reward ratio. "
-                "Specify the 'Entry Zone' clearly."
-            ),
-            expected_output="JSON with 'target', 'stop_loss', 'entry_zone', and 'risk_reward_ratio'.",
-            agent=trade_architect
-        )
-
-        # Task 4: Expert Synthesis & Output
+        # Task 2: Expert Synthesis & Output
         explanation_task = Task(
             description=(
-                "Synthesize all technical findings, pattern recognitions, and risk architectures. "
-                "Provide a 1-2 paragraph expert Hinglish reasoning in the 'explanation' field. "
+                "Synthesize the patterns and technical findings into a professional trading insight. "
+                f"Provide a 1-2 paragraph expert reasoning in {self.language} as the 'explanation' field. "
                 "Combine all data into a FINAL JSON object. "
-                "FORMAT: {\"trend\": \"Bullish/Bearish/Neutral\", \"pattern_name\": \"Specific pattern detected (e.g. Bullish Flag, Double Bottom)\", \"historical_win_rate\": \"Estimated historical win rate % for this pattern\", \"explanation\": \"...\", \"target\": float, \"stop_loss\": float, \"risk_reward\": \"string\", \"resistance\": float, \"support\": float}"
+                "FORMAT: {\"trend\": \"Bullish/Bearish/Neutral\", \"pattern_name\": \"Specific pattern detected\", \"historical_win_rate\": \"xx%\", \"explanation\": \"...\", \"target\": float, \"stop_loss\": float, \"risk_reward\": \"string\", \"resistance\": float, \"support\": float}"
             ),
             expected_output="A complete JSON object containing trend, pattern_name, historical_win_rate, explanation, target, stop_loss, risk_reward, resistance, support.",
             agent=educator
         )
 
         crew = Crew(
-            agents=[indicator_specialist, pattern_expert, trade_architect, educator],
-            tasks=[indicator_task, pattern_task, risk_task, explanation_task],
+            agents=[pattern_expert, educator],
+            tasks=[pattern_task, explanation_task],
             process=Process.sequential,
             verbose=True
         )
 
         try:
-            result = crew.kickoff()
-            raw_result = str(result)
+            crew_result = await crew.kickoff_async()
+            raw_result = str(crew_result)
             print(f"[ChartCrew] Raw result: {raw_result[:200]}")
 
             # ── ROBUST 3-TIER PARSER ──
@@ -82,10 +57,10 @@ class ChartCrew:
                 "pattern_name": "Ascending Triangle (Simulated)",
                 "historical_win_rate": "65%",
                 "explanation": raw_result,
-                "target": technical_context["levels"]["resistance"],
-                "stop_loss": technical_context["levels"]["support"],
-                "resistance": technical_context["levels"]["resistance"],
-                "support": technical_context["levels"]["support"],
+                "target": self.technical_context["levels"]["resistance"],
+                "stop_loss": self.technical_context["levels"]["support"],
+                "resistance": self.technical_context["levels"]["resistance"],
+                "support": self.technical_context["levels"]["support"],
                 "risk_reward": "1:1.5"
             }
 

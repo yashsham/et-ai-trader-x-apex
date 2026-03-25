@@ -187,7 +187,12 @@ async def analyze_stock(request: AnalysisRequest):
         audit_logger.log_event("LLM_ERROR", "HIGH", {"detail": str(e)})
         return JSONResponse(status_code=503, content=create_error_response(str(e), code="LLM_CONFIG_ERROR").model_dump())
     except Exception as e:
-        audit_logger.log_event("ANALYSIS_ERROR", "HIGH", {"detail": str(e)})
+        import traceback
+        error_msg = f"ANALYSIS_ENGINE_FAILURE: {str(e)}"
+        audit_logger.log_event("ANALYSIS_ERROR", "HIGH", {"detail": error_msg, "traceback": traceback.format_exc()})
+        logger.error(f"[Critical] Analysis failed for {request.symbol}: {str(e)}")
+        logger.error(traceback.format_exc())
+        
         # HARD FAILOVER: Return a professional synthetic report so the user never sees a black box
         fallback_data = {
             "decision": "HOLD",
@@ -208,7 +213,8 @@ async def analyze_stock(request: AnalysisRequest):
                 **fallback_data
             },
             "confidence": 0.75,
-            "error_fallback": True
+            "error_fallback": True,
+            "debug_info": str(e) if settings.DEBUG_MODE else None
         }
 
 

@@ -8,28 +8,24 @@ class LLMRouter:
     def __init__(self):
         self.settings = settings
 
+    def get_analysis_model(self) -> str:
+        """Returns the primary model string for CrewAI native integration."""
+        if self.settings.GROQ_API_KEY:
+            return "groq/llama-3.3-70b-versatile"
+        if self.settings.GEMINI_API_KEY:
+            return "gemini/gemini-2.0-flash"
+        return "gpt-4o-mini"
+
     def get_analysis_router(self):
         """
         Deep Reasoning Router for Agents (CrewAI).
-        Uses longer timeouts (15s) and prioritizes high-stability models like Gemini.
+        Uses longer timeouts (60s) and prioritizes Groq for maximum CrewAI stability.
         """
-        # Lazy imports for Windows stability
-        from langchain_google_genai import ChatGoogleGenerativeAI
         from langchain_openai import ChatOpenAI
 
         llm_chain = []
         
-        # 1. GEMINI 2.0 FLASH (High stability/Rate-limits for deep reasoning)
-        if self.settings.GEMINI_API_KEY:
-            llm_chain.append(ChatGoogleGenerativeAI(
-                model="gemini-2.0-flash",
-                google_api_key=self.settings.GEMINI_API_KEY,
-                temperature=0.1,
-                max_retries=1,
-                timeout=15.0 # Give agents plenty of time to reason
-            ))
-
-        # 2. GROQ (FASTEST - Fallback for reasoning)
+        # 1. GROQ (Llama 3.3 70B - PRODUCTION STANDARD FOR AGENTS)
         if self.settings.GROQ_API_KEY:
             llm_chain.append(ChatOpenAI(
                 model="llama-3.3-70b-versatile",
@@ -37,30 +33,9 @@ class LLMRouter:
                 base_url="https://api.groq.com/openai/v1",
                 temperature=0.1,
                 max_retries=1,
-                timeout=10.0
+                timeout=30.0
             ))
-
-        # 3. OPENROUTER (UNIVERSAL SAFETY NET)
-        if self.settings.OPENROUTER_API_KEY:
-            llm_chain.append(ChatOpenAI(
-                model="google/gemini-2.0-flash-001",
-                api_key=self.settings.OPENROUTER_API_KEY,
-                base_url="https://openrouter.ai/api/v1",
-                temperature=0.1,
-                max_retries=1,
-                timeout=15.0
-            ))
-
-        if not llm_chain:
-            logger.critical("[Router] No active LLM providers.")
-            raise ValueError("No LLM API keys configured.")
-
-        primary = llm_chain[0]
-        fallbacks = llm_chain[1:]
-        
-        if fallbacks:
-            return primary.with_fallbacks(fallbacks, exceptions_to_handle=(Exception,))
-        return primary
+        return llm_chain[0]
 
     def get_router(self):
         """
