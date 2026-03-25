@@ -10,7 +10,7 @@ export const OnboardingTour = () => {
     // Show on every new session (standard for "every login" feel)
     const hasSeenTourThisSession = sessionStorage.getItem("has_seen_onboarding_session");
     if (!hasSeenTourThisSession) {
-      const timer = setTimeout(() => setIsVisible(true), 1500);
+      const timer = setTimeout(() => setIsVisible(true), 800);
       return () => clearTimeout(timer);
     }
   }, []);
