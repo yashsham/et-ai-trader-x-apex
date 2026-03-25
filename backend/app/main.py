@@ -590,6 +590,6 @@ def get_cache_stats():
 
 if __name__ == "__main__":
     import uvicorn
-    import os
-    port = int(os.getenv("PORT", 8000))
+    # Use the Pydantic-validated PORT from settings
+    port = settings.PORT
     uvicorn.run(app, host="0.0.0.0", port=port)

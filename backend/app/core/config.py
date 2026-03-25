@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"  # development, production, test
     
     # --- Infrastructure ---
+    PORT: int = 8000
     LOG_LEVEL: str = "INFO"
     DEFAULT_TIMEZONE: str = "Asia/Kolkata"
     DEFAULT_MARKET_REGION: str = "IN"
