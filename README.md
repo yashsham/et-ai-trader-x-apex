@@ -111,7 +111,7 @@ npm run dev -- --host 127.0.0.1
 
 ## 🚦 Operational Dashboard
 - **Frontend URL**: `http://127.0.0.1:8080`
-- **Backend API**: `http://127.0.0.1:8000/docs` (OpenAPI documentation)
+- **Backend API**: `http://127.0.0.1:5000/docs` (OpenAPI documentation)
 - **Database Status**: Integrated via Supabase Real-time.
 - **Agent Status**: **All Swarms Active**
 
