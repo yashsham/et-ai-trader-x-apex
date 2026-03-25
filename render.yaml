@@ -20,6 +20,12 @@ services:
         value: INFO
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: WEB_CONCURRENCY
+        value: 1             # Limit to 1 worker to save RAM (512MB limit)
+      - key: MALLOC_TRIM_THRESHOLD_
+        value: 100000         # Force memory release to OS
+      - key: PYTHONOPTIMIZE
+        value: 1             # Slight memory reduction and speed-up
 
       # ── CORS — set to your frontend URL after first deploy ───────────────
       # Replace the placeholder with your actual Render frontend URL

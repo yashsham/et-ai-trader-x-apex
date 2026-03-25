@@ -93,7 +93,7 @@ class ChatbotCrew:
             tasks=tasks,
             process=Process.hierarchical,
             manager_agent=manager,
-            memory=True,
+            memory=False, # Disable local embedding models to prevent OOM on 512MB instances
             cache=True,
             verbose=True
         )

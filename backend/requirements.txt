@@ -1,7 +1,7 @@
 fastapi>=0.115.0
 uvicorn>=0.30.0
 crewai>=1.11.0
-yfinance==1.2.0
+yfinance==0.2.50
 pandas==2.2.3
 ta==0.11.0
 python-dotenv==1.1.1
@@ -19,13 +19,6 @@ langchain-groq==0.2.4
 langchain-huggingface==0.1.2
 
 # Agent Chat & RAG
-llama-index==0.14.16
-llama-index-llms-openai==0.6.26
-llama-index-llms-groq==0.5.0
-llama-index-embeddings-openai==0.5.2
-llama-index-embeddings-huggingface==0.7.0
+# llama-index, transformers, and sentence-transformers removed to prevent OOM (512MB limit)
+# The system now uses remote LLM/Embedding providers exclusively.
 crewai-tools==1.11.0
-huggingface-hub==0.36.2
-sentence-transformers==5.3.0
-transformers==4.57.6
-tokenizers==0.22.2
