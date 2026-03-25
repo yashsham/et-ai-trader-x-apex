@@ -93,4 +93,22 @@ This project is private and intended for administrative use by **ET AI Trader**.
 
 ---
 
+## 🛠️ **Deployment to Render**
+
+To deploy the **ET AI Trader Backend** to Render, use the following configuration for a **Web Service**:
+
+- **Runtime**: `Python`
+- **Root Directory**: `backend` (Important for monorepo resolution)
+- **Build Command**: `pip install -r requirements.txt`
+- **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+
+### 🔑 Environment Variables on Render
+Ensure the following variables are set in the Render Dashboard:
+- `GROQ_API_KEY`: Your Groq API key.
+- `SUPABASE_URL`: Your Supabase Project URL.
+- `SUPABASE_KEY`: Your Supabase Service Role Key.
+- `PORT`: 10000 (Render provides this automatically).
+
+---
+
 *Built with ❤️ by the ET AI Trader Team.*
