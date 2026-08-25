@@ -1,16 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string) || '';
-const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || '';
+// Supabase public credentials — the anon key is a public client-side key
+// designed for use with Row Level Security (RLS). Safe to include here.
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string)
+  || 'https://pymmyhcxjxoopihhiwcr.supabase.co'
+const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string)
+  || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5bW15aGN4anhvb3BpaGhpd2NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MTIzMjQsImV4cCI6MjA4OTM4ODMyNH0.8BHoRkqn_7wMZWExI4dKMDk-2TU9Nvoxz_C3vJjgiWA'
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('[Supabase] VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY not set. Using placeholder client to prevent crash.')
-}
-
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-anon-key'
-)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // ── Type definitions matching DB schema ──────────────────────────
 export interface AnalysisResult {
