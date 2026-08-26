@@ -934,27 +934,42 @@ app.get("/api/v1/market/news", async (c) => {
   const symbol = c.req.query("symbol");
   const news = [
     {
+      id: 1,
       title: `${symbol || "Nifty"} shows robust support as institutional buyers enter`,
+      headline: `${symbol || "Nifty"} shows robust support as institutional buyers enter`,
       description: "Asset continues its consolidation phase above key short-term support bands, attracting retail and domestic mutual fund inflows.",
+      summary: "Asset continues its consolidation phase above key short-term support bands, attracting retail and domestic mutual fund inflows.",
       source: "ET News",
       url: "https://economictimes.indiatimes.com",
       impact: "High",
+      sector: "Equity Index",
+      time: "Just Now",
       published_at: new Date().toISOString()
     },
     {
+      id: 2,
       title: "Global indices gain support amid easing inflation projections",
+      headline: "Global indices gain support amid easing inflation projections",
       description: "Asian markets climbed higher with US treasury yield stabilization offering structural support to emerging equities.",
+      summary: "Asian markets climbed higher with US treasury yield stabilization offering structural support to emerging equities.",
       source: "Bloomberg",
       url: "https://bloomberg.com",
       impact: "Medium",
+      sector: "Macro Economy",
+      time: "15m ago",
       published_at: new Date().toISOString()
     },
     {
+      id: 3,
       title: "IT sector logs quiet accumulation ahead of quarterly disclosures",
+      headline: "IT sector logs quiet accumulation ahead of quarterly disclosures",
       description: "Analysts project positive forward guidance for bluechip technology firms, triggering pre-earnings volatility.",
+      summary: "Analysts project positive forward guidance for bluechip technology firms, triggering pre-earnings volatility.",
       source: "Reuters",
       url: "https://reuters.com",
       impact: "Low",
+      sector: "Information Tech",
+      time: "1h ago",
       published_at: new Date().toISOString()
     }
   ];
