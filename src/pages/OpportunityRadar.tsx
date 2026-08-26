@@ -165,7 +165,7 @@ const OpportunityRadar = () => {
                           activeFilters.signal === sig ? "bg-gold text-black" : "text-muted-foreground hover:text-foreground"
                         }`}
                       >
-                        {sig === "All" ? t('all') : t(sig.toLowerCase() as any)}
+                        {sig === "All" ? t('all') : t(((sig || '').toString().toLowerCase()) as any)}
                       </button>
                     ))}
                   </div>
@@ -202,7 +202,7 @@ const OpportunityRadar = () => {
                             : "border-white/5 text-muted-foreground hover:border-white/20"
                         }`}
                       >
-                         {r === "All" ? t('all') : t(r.toLowerCase() as any)}
+                         {r === "All" ? t('all') : t(((r || '').toString().toLowerCase()) as any)}
                       </button>
                     ))}
                   </div>

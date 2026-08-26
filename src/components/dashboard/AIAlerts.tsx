@@ -81,12 +81,12 @@ export function AIAlerts() {
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
                   <span className="font-mono-data text-sm font-bold text-foreground group-hover:text-gold transition-colors">
-                    {(alert.symbol || "N/A").toUpperCase()}
+                    {(alert.symbol || "N/A").toString().toUpperCase()}
                   </span>
                   <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold tracking-tighter ${
                     isBuy ? "bg-profit/10 text-profit" : isSell ? "bg-loss/10 text-loss" : "bg-muted text-gold"
                   }`}>
-                    {t(alert.decision.toLowerCase() as any) || alert.decision}
+                    {t(((alert.decision || '').toString().toLowerCase()) as any) || alert.decision || 'HOLD'}
                   </span>
                 </div>
                 <span className="font-mono-data text-[10px] text-muted-foreground">

@@ -109,8 +109,8 @@ const SignalHistory = () => {
   }, [loading, signals, searchParams]);
 
   const filteredSignals = signals.filter(s => 
-    s.stock.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.signal.toLowerCase().includes(searchTerm.toLowerCase())
+    (s.stock || '').toString().toLowerCase().includes((searchTerm || '').toString().toLowerCase()) ||
+    (s.signal || '').toString().toLowerCase().includes((searchTerm || '').toString().toLowerCase())
   );
 
   const handleViewTradePlan = (data: SignalData) => {

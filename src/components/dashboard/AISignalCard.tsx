@@ -204,7 +204,7 @@ export function AISignalCard({ data, onViewTradePlan, index = 0 }: AISignalCardP
           <div className="flex items-center gap-1.5">
             <ShieldAlert className="w-3 h-3 text-muted-foreground" />
             <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${riskColors[data.risk]}`}>
-              {t(data.risk.toLowerCase() as any)} {t('risk_label')}
+              {t(((data.risk || '').toString().toLowerCase()) as any)} {t('risk_label')}
             </span>
           </div>
           <span className="text-[10px] text-muted-foreground">{t('volume')}: {data.volume}</span>

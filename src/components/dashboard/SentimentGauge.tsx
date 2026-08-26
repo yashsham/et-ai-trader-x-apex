@@ -91,7 +91,7 @@ export function SentimentGauge() {
         }`}>{sentiment}%</span>
         <p className={`text-sm font-medium mt-1 ${
           label === "Bullish" ? "text-profit" : label === "Bearish" ? "text-loss" : "text-gold"
-        }`}>{t(label.toLowerCase() as any)}</p>
+        }`}>{t(((label || '').toString().toLowerCase()) as any)}</p>
       </div>
 
       <div className="flex justify-between w-full mt-3 px-2">

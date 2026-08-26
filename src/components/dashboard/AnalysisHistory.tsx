@@ -57,7 +57,7 @@ export function AnalysisHistory() {
             <div key={record.id} className="p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-colors relative overflow-hidden group">
               <div className="flex items-start justify-between mb-3 relative z-10">
                 <div className="flex flex-col">
-                  <span className="font-black text-lg text-white tracking-widest leading-none">{record.symbol.toUpperCase()}</span>
+                  <span className="font-black text-lg text-white tracking-widest leading-none">{(record.symbol || "N/A").toString().toUpperCase()}</span>
                   <span className="text-[10px] text-muted-foreground font-mono mt-1">
                     {new Date(record.created_at).toLocaleString()}
                   </span>
@@ -71,7 +71,7 @@ export function AnalysisHistory() {
               <div className="relative z-10 text-sm text-foreground/80 font-mono-data opacity-95 group-hover:opacity-100 transition-opacity">
                 {(() => {
                   try {
-                    let raw = record.decision_output.trim();
+                    let raw = (record.decision_output || '').trim();
                     
                     // Multi-pass Institutional Extraction
                     // 1. Strip markdown backticks
@@ -93,13 +93,15 @@ export function AnalysisHistory() {
                       }
                     }
 
+                    const sentimentStr = (parsed?.sentiment || '').toString().toLowerCase();
+
                     return (
                       <div className="flex flex-col gap-2">
                         <div className="flex flex-wrap gap-2 items-center">
-                          {parsed.sentiment && (
+                          {parsed?.sentiment && (
                             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-tighter ${
-                              parsed.sentiment.toLowerCase().includes('bull') ? 'bg-profit/20 text-profit' : 
-                              parsed.sentiment.toLowerCase().includes('bear') ? 'bg-loss/20 text-loss' : 
+                              sentimentStr.includes('bull') ? 'bg-profit/20 text-profit' : 
+                              sentimentStr.includes('bear') ? 'bg-loss/20 text-loss' : 
                               'bg-gold/20 text-gold'
                             }`}>
                               {parsed.sentiment}
