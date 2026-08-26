@@ -1,3 +1,4 @@
+import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -72,4 +73,55 @@ const App = () => (
   </QueryClientProvider>
 );
 
-export default App;
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{
+          minHeight: '100vh', background: '#0a0e1a', color: '#fff',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          padding: '2rem', fontFamily: 'monospace'
+        }}>
+          <h1 style={{ color: '#e84040', marginBottom: '1rem' }}>⚠ App Error</h1>
+          <pre style={{
+            background: '#111', padding: '1rem', borderRadius: '8px',
+            maxWidth: '800px', overflow: 'auto', fontSize: '12px',
+            color: '#f87171', whiteSpace: 'pre-wrap'
+          }}>
+            {this.state.error.message}\n\n{this.state.error.stack}
+          </pre>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: '1.5rem', padding: '0.5rem 1.5rem',
+              background: '#e84040', color: '#fff', border: 'none',
+              borderRadius: '6px', cursor: 'pointer'
+            }}
+          >
+            Reload
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const AppWithBoundary = () => (
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>
+);
+
+export default AppWithBoundary;
