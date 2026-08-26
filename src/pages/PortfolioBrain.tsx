@@ -105,7 +105,7 @@ const PortfolioBrain = () => {
 
   // Pie chart calculation
   let cumAngle = 0;
-  const pieSlices = data?.sectors.map((s) => {
+  const pieSlices = (data?.sectors || []).map((s) => {
     const startAngle = cumAngle;
     cumAngle += (s.pct / 100) * 360;
     const endAngle = cumAngle;
@@ -114,7 +114,7 @@ const PortfolioBrain = () => {
     const largeArc = s.pct > 50 ? 1 : 0;
     const d = `M 50 50 L ${start.x} ${start.y} A 40 40 0 ${largeArc} 1 ${end.x} ${end.y} Z`;
     return { ...s, d };
-  }) || [];
+  });
 
   return (
     <AppLayout>
@@ -176,7 +176,7 @@ const PortfolioBrain = () => {
                 </text>
               </svg>
               <div className="flex flex-wrap gap-3 justify-center">
-                {data.sectors.map((s) => (
+                {(data?.sectors || []).map((s) => (
                   <div key={s.name} className="flex items-center gap-1.5">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: s.color }} />
                     <span className="text-[10px] text-muted-foreground">
@@ -192,13 +192,13 @@ const PortfolioBrain = () => {
               <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-4">
                 {t('holdings')}
               </p>
-              {data.holdings.length === 0 ? (
+              {(data?.holdings || []).length === 0 ? (
                 <div className="text-center text-sm text-muted-foreground py-8">
                    {t('no_positions')}
                 </div>
               ) : (
                 <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-                  {data.holdings.map((h) => (
+                  {(data?.holdings || []).map((h) => (
                     <div key={h.name} className="flex items-center justify-between py-2 px-2 rounded-lg hover:bg-accent transition-colors">
                       <div>
                         <p className="text-sm font-medium text-foreground">{h.name}</p>
@@ -251,10 +251,10 @@ const PortfolioBrain = () => {
                   {t('ai_insights')}
                 </p>
                 <div className="space-y-3">
-                  {data.insights.length === 0 && (
+                  {(data?.insights || []).length === 0 && (
                      <p className="text-xs text-muted-foreground text-center">{t('no_insights')}</p>
                   )}
-                  {data.insights.map((insight, i) => (
+                  {(data?.insights || []).map((insight, i) => (
                     <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-accent">
                       {insight.type === "warning" ? (
                         <AlertTriangle className="w-4 h-4 text-gold shrink-0 mt-0.5" />
