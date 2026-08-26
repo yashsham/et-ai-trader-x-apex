@@ -37,14 +37,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       window.history.replaceState({}, document.title, cleanUrl);
     }
 
+    // Fallback timer: ensure loading state never hangs indefinitely
+    const fallbackTimer = setTimeout(() => {
+      setLoading(false);
+    }, 3000);
+
     // Check active sessions and sets the user
     supabase.auth.getSession()
       .then(({ data: { session } }) => {
+        clearTimeout(fallbackTimer);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
       })
       .catch((err) => {
+        clearTimeout(fallbackTimer);
         console.error("Failed to get session:", err);
         setLoading(false);
       });

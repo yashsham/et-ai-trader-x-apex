@@ -2,12 +2,16 @@ import { createClient } from '@supabase/supabase-js'
 
 // Supabase public credentials — the anon key is a public client-side key
 // designed for use with Row Level Security (RLS). Safe to include here.
-const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string)
-  || 'https://pymmyhcxjxoopihhiwcr.supabase.co'
-const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string)
-  || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5bW15aGN4anhvb3BpaGhpd2NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MTIzMjQsImV4cCI6MjA4OTM4ODMyNH0.8BHoRkqn_7wMZWExI4dKMDk-2TU9Nvoxz_C3vJjgiWA'
+const rawUrl = (import.meta.env.VITE_SUPABASE_URL as string)
+  || 'https://pymmyhcxjxoopihhiwcr.supabase.co';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Clean up URL in case rest/v1/ or trailing slash is provided
+const supabaseUrl = rawUrl.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
+
+const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string)
+  || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5bW15aGN4anhvb3BpaGhpd2NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MTIzMjQsImV4cCI6MjA4OTM4ODMyNH0.8BHoRkqn_7wMZWExI4dKMDk-2TU9Nvoxz_C3vJjgiWA';
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // ── Type definitions matching DB schema ──────────────────────────
 export interface AnalysisResult {
