@@ -21,104 +21,125 @@ export class LLMService {
   /**
    * Universal completion router that chooses the first available API key.
    */
+  /**
+   * Universal completion router that chooses the first available API key and model.
+   */
   private async complete(prompt: string, systemPrompt = "You are a professional financial advisor.", jsonMode = false): Promise<string> {
     const { geminiKey, groqKey, openaiKey, openrouterKey, nvidiaKey } = this.config;
 
-    // 1. Try Groq (Llama-3.3, OpenAI-compatible)
+    // 1. Try Groq
     if (groqKey && groqKey.trim() !== "") {
-      try {
-        const url = "https://api.groq.com/openai/v1/chat/completions";
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${groqKey}`
-          },
-          body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: prompt }
-            ],
-            response_format: jsonMode ? { type: "json_object" } : undefined
-          })
-        });
+      const groqModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768", "gemma2-9b-it"];
+      for (const model of groqModels) {
+        try {
+          const url = "https://api.groq.com/openai/v1/chat/completions";
+          const response = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${groqKey}`
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: prompt }
+              ],
+              response_format: jsonMode ? { type: "json_object" } : undefined
+            })
+          });
 
-        if (response.ok) {
-          const json: any = await response.json();
-          const text = json?.choices?.[0]?.message?.content;
-          if (text) return text;
-        } else {
-          console.error("Groq API Error:", await response.text());
+          if (response.ok) {
+            const json: any = await response.json();
+            const text = json?.choices?.[0]?.message?.content;
+            if (text) return text;
+          } else {
+            console.error(`Groq API Error (${model}):`, await response.text());
+          }
+        } catch (e) {
+          console.error(`Groq failed for ${model}:`, e);
         }
-      } catch (e) {
-        console.error("Groq failed:", e);
       }
     }
 
-    // 2. Try OpenRouter (omniroute)
+    // 2. Try OpenRouter
     if (openrouterKey && openrouterKey.trim() !== "") {
-      try {
-        const url = "https://openrouter.ai/api/v1/chat/completions";
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${openrouterKey}`,
-            "HTTP-Referer": "https://et-ai-trader-x-apex.pages.dev",
-            "X-Title": "ET AI Trader"
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: prompt }
-            ],
-            response_format: jsonMode ? { type: "json_object" } : undefined
-          })
-        });
+      const openrouterModels = [
+        "meta-llama/llama-3.3-70b-instruct",
+        "google/gemini-2.0-flash-001",
+        "openai/gpt-4o-mini",
+        "deepseek/deepseek-r1:free"
+      ];
+      for (const model of openrouterModels) {
+        try {
+          const url = "https://openrouter.ai/api/v1/chat/completions";
+          const response = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${openrouterKey}`,
+              "HTTP-Referer": "https://et-ai-trader-x-apex.pages.dev",
+              "X-Title": "ET AI Trader"
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: prompt }
+              ],
+              response_format: jsonMode ? { type: "json_object" } : undefined
+            })
+          });
 
-        if (response.ok) {
-          const json: any = await response.json();
-          const text = json?.choices?.[0]?.message?.content;
-          if (text) return text;
-        } else {
-          console.error("OpenRouter API Error:", await response.text());
+          if (response.ok) {
+            const json: any = await response.json();
+            const text = json?.choices?.[0]?.message?.content;
+            if (text) return text;
+          } else {
+            console.error(`OpenRouter API Error (${model}):`, await response.text());
+          }
+        } catch (e) {
+          console.error(`OpenRouter failed for ${model}:`, e);
         }
-      } catch (e) {
-        console.error("OpenRouter failed:", e);
       }
     }
 
-    // 3. Try Nvidia NIM (Meta Llama 3.3 70B)
+    // 3. Try Nvidia NIM
     if (nvidiaKey && nvidiaKey.trim() !== "") {
-      try {
-        const url = "https://integrate.api.nvidia.com/v1/chat/completions";
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${nvidiaKey}`
-          },
-          body: JSON.stringify({
-            model: "meta/llama-3.3-70b-instruct",
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: prompt }
-            ],
-            response_format: jsonMode ? { type: "json_object" } : undefined
-          })
-        });
+      const nvidiaModels = [
+        "meta/llama-3.3-70b-instruct",
+        "nvidia/llama-3.1-nemotron-70b-instruct",
+        "meta/llama3-70b-instruct"
+      ];
+      for (const model of nvidiaModels) {
+        try {
+          const url = "https://integrate.api.nvidia.com/v1/chat/completions";
+          const response = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${nvidiaKey}`
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: prompt }
+              ],
+              response_format: jsonMode ? { type: "json_object" } : undefined
+            })
+          });
 
-        if (response.ok) {
-          const json: any = await response.json();
-          const text = json?.choices?.[0]?.message?.content;
-          if (text) return text;
-        } else {
-          console.error("Nvidia NIM API Error:", await response.text());
+          if (response.ok) {
+            const json: any = await response.json();
+            const text = json?.choices?.[0]?.message?.content;
+            if (text) return text;
+          } else {
+            console.error(`Nvidia NIM API Error (${model}):`, await response.text());
+          }
+        } catch (e) {
+          console.error(`Nvidia NIM failed for ${model}:`, e);
         }
-      } catch (e) {
-        console.error("Nvidia NIM failed:", e);
       }
     }
 

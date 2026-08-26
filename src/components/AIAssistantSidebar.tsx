@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Send, Zap, TrendingUp, BarChart3, Brain, X, Loader2 } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api-config";
 
 interface Message {
   id: number;
@@ -60,7 +61,7 @@ export function AIAssistantSidebar({ isOpen, onClose }: AIAssistantSidebarProps)
     ]);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/v1/chat", {
+      const res = await fetch(`${API_BASE_URL}/api/v1/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: text }),
