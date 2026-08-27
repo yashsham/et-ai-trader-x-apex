@@ -60,7 +60,7 @@ export function TopNavbar() {
       message: "📈 Breakout Alert: TATAMOTORS crossed 50-EMA with +8.2% upside potential",
       created_at: new Date(Date.now() - 600000).toISOString(),
       read: false,
-      action_url: "/chart?symbol=TATAMOTORS.NS"
+      action_url: "/charts?symbol=TATAMOTORS.NS"
     },
     {
       id: "n3",
@@ -223,7 +223,7 @@ export function TopNavbar() {
   const handleSelectSymbol = (sym: string) => {
     setSearchQuery("");
     setSearchResults([]);
-    navigate(`/chart?symbol=${encodeURIComponent(sym)}`);
+    navigate(`/charts?symbol=${encodeURIComponent(sym)}`);
   };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

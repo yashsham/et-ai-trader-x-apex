@@ -52,12 +52,16 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/radar" element={<ProtectedRoute><OpportunityRadar /></ProtectedRoute>} />
+              <Route path="/alpha-radar" element={<ProtectedRoute><OpportunityRadar /></ProtectedRoute>} />
               <Route path="/history" element={<ProtectedRoute><SignalHistory /></ProtectedRoute>} />
+              <Route path="/signal-history" element={<ProtectedRoute><SignalHistory /></ProtectedRoute>} />
               <Route path="/charts" element={<ProtectedRoute><ChartIntelligence /></ProtectedRoute>} />
+              <Route path="/chart" element={<ProtectedRoute><ChartIntelligence /></ProtectedRoute>} />
               <Route path="/portfolio" element={<ProtectedRoute><PortfolioBrain /></ProtectedRoute>} />
               <Route path="/assistant" element={<ProtectedRoute><AIAssistant /></ProtectedRoute>} />
               <Route path="/video" element={<ProtectedRoute><AIVideoEngine /></ProtectedRoute>} />
               <Route path="/news" element={<ProtectedRoute><MarketNews /></ProtectedRoute>} />
+              <Route path="/market-intel" element={<ProtectedRoute><MarketNews /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               
               {/* Supabase Auth Redirect Handlers for HashRouter */}
