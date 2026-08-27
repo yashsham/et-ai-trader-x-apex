@@ -22,14 +22,19 @@ export class LLMService {
    * Universal completion router that chooses the first available API key.
    */
   /**
+  /**
    * Universal completion router that chooses the first available API key and model.
+   * Failover topology:
+   * 1. Groq (Primary Active) -> openai/gpt-oss-20b, llama-3.3-70b-versatile
+   * 2. NVIDIA NIM (Standby Failover) -> meta/llama-3.3-70b-instruct
+   * 3. OpenRouter (Secondary Standby) -> meta-llama/llama-3.3-70b-instruct
    */
   private async complete(prompt: string, systemPrompt = "You are a professional financial advisor.", jsonMode = false): Promise<string> {
     const { geminiKey, groqKey, openaiKey, openrouterKey, nvidiaKey } = this.config;
 
-    // 1. Try Groq
+    // 1. Try Groq (Active Primary)
     if (groqKey && groqKey.trim() !== "") {
-      const groqModels = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768", "gemma2-9b-it"];
+      const groqModels = ["openai/gpt-oss-20b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768", "gemma2-9b-it"];
       for (const model of groqModels) {
         try {
           const url = "https://api.groq.com/openai/v1/chat/completions";
@@ -60,9 +65,51 @@ export class LLMService {
           console.error(`Groq failed for ${model}:`, e);
         }
       }
+      console.warn("[LLM Router] Groq models failed. Initiating immediate failover to NVIDIA NIM...");
     }
 
-    // 2. Try OpenRouter
+    // 2. Try Nvidia NIM (Standby Failover)
+    if (nvidiaKey && nvidiaKey.trim() !== "") {
+      const nvidiaModels = [
+        "meta/llama-3.3-70b-instruct",
+        "meta/llama-3.3-70b",
+        "nvidia/llama-3.1-nemotron-70b-instruct",
+        "meta/llama3-70b-instruct"
+      ];
+      for (const model of nvidiaModels) {
+        try {
+          const url = "https://integrate.api.nvidia.com/v1/chat/completions";
+          const response = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${nvidiaKey}`
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: prompt }
+              ],
+              response_format: jsonMode ? { type: "json_object" } : undefined
+            })
+          });
+
+          if (response.ok) {
+            const json: any = await response.json();
+            const text = json?.choices?.[0]?.message?.content;
+            if (text) return text;
+          } else {
+            console.error(`Nvidia NIM API Error (${model}):`, await response.text());
+          }
+        } catch (e) {
+          console.error(`Nvidia NIM failed for ${model}:`, e);
+        }
+      }
+      console.warn("[LLM Router] NVIDIA NIM models failed. Initiating failover to OpenRouter...");
+    }
+
+    // 3. Try OpenRouter (Secondary Standby)
     if (openrouterKey && openrouterKey.trim() !== "") {
       const openrouterModels = [
         "meta-llama/llama-3.3-70b-instruct",
@@ -100,45 +147,6 @@ export class LLMService {
           }
         } catch (e) {
           console.error(`OpenRouter failed for ${model}:`, e);
-        }
-      }
-    }
-
-    // 3. Try Nvidia NIM
-    if (nvidiaKey && nvidiaKey.trim() !== "") {
-      const nvidiaModels = [
-        "meta/llama-3.3-70b-instruct",
-        "nvidia/llama-3.1-nemotron-70b-instruct",
-        "meta/llama3-70b-instruct"
-      ];
-      for (const model of nvidiaModels) {
-        try {
-          const url = "https://integrate.api.nvidia.com/v1/chat/completions";
-          const response = await fetch(url, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${nvidiaKey}`
-            },
-            body: JSON.stringify({
-              model,
-              messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: prompt }
-              ],
-              response_format: jsonMode ? { type: "json_object" } : undefined
-            })
-          });
-
-          if (response.ok) {
-            const json: any = await response.json();
-            const text = json?.choices?.[0]?.message?.content;
-            if (text) return text;
-          } else {
-            console.error(`Nvidia NIM API Error (${model}):`, await response.text());
-          }
-        } catch (e) {
-          console.error(`Nvidia NIM failed for ${model}:`, e);
         }
       }
     }
@@ -406,6 +414,53 @@ ${JSON.stringify(holdings, null, 2)}`;
       });
     }
     return "The AI assistant is currently operating offline. To enable live AI intelligence, please bind your GEMINI_API_KEY, GROQ_API_KEY, or OPENAI_API_KEY environment variables in Cloudflare.";
+  }
+
+  /**
+   * Returns current active/standby failover topology.
+   */
+  public getProviderStatus(): any {
+    const { groqKey, nvidiaKey, openrouterKey } = this.config;
+    const providers = [];
+
+    const groqOk = !!(groqKey && groqKey.trim() !== "");
+    const nvidiaOk = !!(nvidiaKey && nvidiaKey.trim() !== "");
+    const openrouterOk = !!(openrouterKey && openrouterKey.trim() !== "");
+
+    providers.push({
+      id: "groq",
+      name: "Groq (openai/gpt-oss-20b)",
+      provider: "Groq",
+      model: "openai/gpt-oss-20b",
+      status: groqOk ? "Active" : "Offline",
+      configured: groqOk
+    });
+
+    providers.push({
+      id: "nvidia",
+      name: "NVIDIA NIM (meta/llama-3.3-70b)",
+      provider: "NVIDIA NIM",
+      model: "meta/llama-3.3-70b",
+      status: nvidiaOk ? (groqOk ? "Standby" : "Active") : "Offline",
+      configured: nvidiaOk
+    });
+
+    if (openrouterOk) {
+      providers.push({
+        id: "openrouter",
+        name: "OpenRouter (meta-llama/llama-3.3-70b)",
+        provider: "OpenRouter",
+        model: "meta-llama/llama-3.3-70b-instruct",
+        status: (groqOk || nvidiaOk) ? "Standby" : "Active",
+        configured: true
+      });
+    }
+
+    return {
+      active_provider: groqOk ? "Groq (openai/gpt-oss-20b)" : (nvidiaOk ? "NVIDIA NIM (meta/llama-3.3-70b)" : "Offline"),
+      failover_enabled: true,
+      providers
+    };
   }
 }
 

@@ -22,10 +22,12 @@ interface Message {
 }
 
 import ReactMarkdown from 'react-markdown';
+import { LLMModelStatusCard } from "@/components/dashboard/LLMModelStatusCard";
 
 const AIAssistant = () => {
   const { user } = useAuth();
   const { t, language } = useLanguage();
+  const [showStatus, setShowStatus] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -148,15 +150,26 @@ We are modeling a +5% to +8% upside from current levels over the next 3-5 tradin
     <AppLayout>
       <div className="h-[calc(100vh-112px)] flex flex-col animate-fade-in">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-lg gradient-crimson-gold flex items-center justify-center">
-            <Brain className="w-4 h-4 text-foreground" />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg gradient-crimson-gold flex items-center justify-center">
+              <Brain className="w-4 h-4 text-foreground" />
+            </div>
+            <div>
+              <h1 className="font-display text-lg font-bold text-foreground">{t('assistant')}</h1>
+              <p className="text-xs text-muted-foreground">Powered by ET AI Engine (Groq Active · NVIDIA NIM Standby)</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-display text-lg font-bold text-foreground">{t('assistant')}</h1>
-            <p className="text-xs text-muted-foreground">Powered by ET AI Engine</p>
-          </div>
+          <button
+            onClick={() => setShowStatus(!showStatus)}
+            className="text-[10px] font-mono font-bold px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-foreground flex items-center gap-2 transition-all cursor-pointer"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-profit animate-pulse" />
+            Failover Status
+          </button>
         </div>
+
+        {showStatus && <LLMModelStatusCard className="mb-4" />}
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto space-y-4 pr-2">

@@ -1059,6 +1059,11 @@ app.post("/api/v1/chat/stream", async (c) => {
   return c.text(`data: ${JSON.stringify({ text: responseText })}\n\n`);
 });
 
+app.get("/api/v1/llm/status", (c) => {
+  const llm = getLLM(c.env);
+  return c.json(createSuccessResponse(llm.getProviderStatus()));
+});
+
 // ── SYSTEM HEALTH SNAPSHOTS ──────────────────────────────────────
 app.get("/api/v1/system/status", (c) => {
   return c.json(

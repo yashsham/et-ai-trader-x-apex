@@ -5,6 +5,7 @@ import { getSettings, updateSettings, UserSettings } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { LLMModelStatusCard } from "@/components/dashboard/LLMModelStatusCard";
 
 const SettingsPage = () => {
   const { t } = useLanguage();
@@ -179,6 +180,9 @@ const SettingsPage = () => {
                 </div>
               </div>
             </div>
+
+            {/* LLM Model Failover Topology Status */}
+            <LLMModelStatusCard />
 
             {/* Action Bar */}
             <div className="flex justify-end pt-4">
