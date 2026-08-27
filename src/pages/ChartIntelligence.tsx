@@ -470,13 +470,11 @@ const ChartIntelligence = () => {
           </div>
         </div>
 
-        {signalData && (
-          <TradePlanModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            signal={signalData}
-          />
-        )}
+        <TradePlanModal
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+          data={signalData}
+        />
       </div>
     </AppLayout>
   );
