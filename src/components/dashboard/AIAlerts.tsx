@@ -56,13 +56,13 @@ export function AIAlerts() {
           // Helper to parse JSON if output is structured
           const cleanOutput = () => {
             try {
-              // Remove potential markdown code blocks
-              const cleaned = alert.decision_output.replace(/```json|```/g, "").trim();
+              const outputText = (alert?.decision_output || '').toString();
+              const cleaned = outputText.replace(/```json|```/g, "").trim();
               if (cleaned.startsWith("{")) {
                 const parsed = JSON.parse(cleaned);
-                return parsed.reasoning || parsed.insight || parsed.core_insight || alert.decision_output;
+                return parsed.reasoning || parsed.insight || parsed.core_insight || outputText;
               }
-              return alert.decision_output;
+              return outputText;
             } catch (e) {
               return alert.decision_output;
             }

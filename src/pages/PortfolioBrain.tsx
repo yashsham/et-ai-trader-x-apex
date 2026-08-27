@@ -206,8 +206,8 @@ const PortfolioBrain = () => {
                       </div>
                       <div className="text-right">
                         <p className="font-mono-data text-sm text-foreground">{h.value}</p>
-                        <p className={`font-mono-data text-xs ${h.change.startsWith("-") ? "text-loss" : "text-profit"}`}>
-                          {h.change}
+                        <p className={`font-mono-data text-xs ${(h?.change || '').toString().startsWith("-") ? "text-loss" : "text-profit"}`}>
+                          {h?.change || '0.00%'}
                         </p>
                       </div>
                     </div>
